@@ -1,0 +1,32 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8501:8080"
+    environment:
+      DATABASE_URL: postgresql+psycopg://specguard:specguard@postgres:5432/specguard
+      DEMO_PASSWORD: ${DEMO_PASSWORD:-demo1234}
+      LLM_ENABLED: ${LLM_ENABLED:-false}
+      LLM_BASE_URL: ${LLM_BASE_URL:-https://foundation-models.api.cloud.ru/v1}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_MODEL: ${LLM_MODEL:-ai-sage/GigaChat3-10B-A1.8B}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: specguard
+      POSTGRES_USER: specguard
+      POSTGRES_PASSWORD: specguard
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U specguard -d specguard"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres_data:
