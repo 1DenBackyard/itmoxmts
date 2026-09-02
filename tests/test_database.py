@@ -3,6 +3,7 @@ from pathlib import Path
 from specguard.config import Settings
 from specguard.database import Repository
 from specguard.review import ReviewOrchestrator
+from specguard.storage import StoredDocument
 
 
 def settings() -> Settings:
@@ -30,10 +31,22 @@ def test_review_and_confirmed_issue_are_persisted(tmp_path: Path) -> None:
         filename="spec.txt",
         document_text=text,
         result=result,
+        document=StoredDocument(
+            backend="s3",
+            object_key="documents/user/spec.txt",
+            bucket="specguard-documents",
+            content_type="text/plain",
+            size_bytes=len(text.encode()),
+            content_hash="hash",
+            etag="etag",
+        ),
     )
 
     stored = repository.get_review(review_id, user.id)
     assert stored is not None
+    assert stored.document is not None
+    assert stored.document.object_key == "documents/user/spec.txt"
+    assert stored.document.content_hash == "hash"
     assert len(stored.issues) == 1
     assert repository.set_issue_decision(stored.issues[0].id, user.id, "accepted")
 

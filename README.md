@@ -19,7 +19,8 @@ NET SpecGuard — прототип мультиагентной системы �
 - доказательное замечание: цитата, влияние, вопрос и рекомендация;
 - подтверждение, отклонение и закрытие найденной проблемы;
 - персональная статистика по подтверждённым категориям ошибок;
-- хранение метаданных проверки без сохранения полного текста ТЗ.
+- хранение оригиналов в локальном storage для разработки или в приватном Cloud.ru Object Storage;
+- хранение в БД только ссылки на объект, hash, метаданных проверки и замечаний.
 
 ## Логическая архитектура
 
@@ -28,6 +29,7 @@ flowchart LR
     USER["Сотрудник"] --> LK["Личный кабинет<br/>Streamlit"]
     LK --> INPUT["Загрузка ТЗ"]
     INPUT --> PREP["Разбор документа<br/>и карта фактов"]
+    INPUT --> OBJECTS[("Хранилище оригиналов<br/>local / Cloud.ru S3")]
     PREP --> ORCH["Оркестратор"]
 
     ORCH --> A1["Аналитик"]
@@ -50,23 +52,27 @@ flowchart LR
     PROFILE --> LK
 ```
 
-## HLD для Cloud.ru
+## HLD для первого деплоя в Cloud.ru
 
 ```mermaid
 flowchart LR
-    GH["GitHub<br/>исходный код"] --> CI["GitHub Actions<br/>tests · build"]
-    CI --> AR["Cloud.ru<br/>Artifact Registry"]
-    AR --> APP["Cloud.ru Container Apps<br/>Streamlit + review engine"]
+    DEV["Команда"] --> GH["GitHub<br/>исходный код и версии"]
+    GH --> DEPLOY["git pull +<br/>docker compose up"]
 
-    USER["Пользователь"] --> APP
-    APP --> PG[("Managed PostgreSQL<br/>пользователи · проверки · ошибки")]
-    APP --> FM["Foundation Models<br/>OpenAI-compatible API"]
-    APP -. следующий этап .-> S3[("Object Storage<br/>документы с TTL")]
+    USER["Сотрудник"] -->|HTTPS| PROXY
 
-    ADMIN["Администратор"] --> APP
+    subgraph VM["Cloud.ru VM · Ubuntu"]
+        PROXY["Caddy / Nginx<br/>TLS и reverse proxy"] --> APP["Streamlit<br/>ЛК + review engine"]
+        APP --> PG[("PostgreSQL<br/>пользователи · проверки · ошибки")]
+    end
+
+    APP --> S3[("Cloud.ru Object Storage<br/>приватный бакет · оригиналы ТЗ")]
+    APP --> FM["Cloud.ru Foundation Models<br/>OpenAI-compatible API"]
 ```
 
-Для MVP приложение разворачивается одним контейнером в **Container Apps**. Docker-образ хранится в **Artifact Registry**, структурированные данные — в **Managed PostgreSQL**, а вызовы агентов выполняются через **Foundation Models**. Endpoint Foundation Models совместим с OpenAI API и задаётся конфигурацией. Полные тексты документов в текущем MVP не сохраняются: в БД попадают hash документа, метаданные и найденные замечания.
+Для хакатонного MVP используем одну **Cloud.ru VM** и Docker Compose: так проще развернуть и диагностировать прототип. Streamlit и PostgreSQL работают в отдельных контейнерах на VM. Исходные документы сохраняются в приватном бакете **Cloud.ru Object Storage**, а в PostgreSQL находятся только ключ объекта, hash, размер, MIME-тип, результаты проверок и персональная статистика. Публичный доступ к бакету не требуется.
+
+Когда появится нагрузка, без изменения прикладной логики можно вынести PostgreSQL в Managed PostgreSQL, образ — в Artifact Registry, а приложение — в Container Apps.
 
 Официальная документация Cloud.ru:
 
@@ -74,6 +80,8 @@ flowchart LR
 - [Artifact Registry: загрузка Docker-образа](https://cloud.ru/docs/artifact-registry-evolution/ug/topics/guides__artifact-push)
 - [Managed PostgreSQL](https://cloud.ru/docs/paas-postgresql/ug/doc-contents)
 - [Foundation Models API](https://cloud.ru/docs/foundation-models/ug/topics/api-ref)
+- [Object Storage](https://cloud.ru/docs/s3e/ug/doc-contents)
+- [Object Storage через Python SDK boto3](https://cloud.ru/docs/s3e/ug/topics/tools__sdk-python)
 
 ## Структура проекта
 
@@ -85,6 +93,7 @@ flowchart LR
 │   ├── config.py                  # Конфигурация окружения
 │   ├── database.py                # SQLAlchemy и репозиторий
 │   ├── documents.py               # PDF/DOCX/TXT extraction
+│   ├── storage.py                 # Local/S3 adapter исходных документов
 │   └── review/
 │       ├── agents.py              # Специализированные агенты
 │       ├── llm.py                 # Cloud.ru Foundation Models
@@ -93,6 +102,7 @@ flowchart LR
 ├── tests/                         # Автоматические проверки
 ├── Dockerfile
 ├── docker-compose.yml
+├── Makefile                       # Команды локальной разработки
 └── .github/workflows/ci.yml
 ```
 
@@ -105,7 +115,7 @@ python -m venv .venv
 source .venv/bin/activate
 pip install -e '.[dev]'
 cp .env.example .env
-streamlit run app.py
+make run
 ```
 
 Откройте `http://localhost:8501`.
@@ -126,6 +136,24 @@ docker compose up --build
 ```
 
 Приложение будет доступно на `http://localhost:8501`, PostgreSQL — только внутри compose-сети.
+
+## Подключение Cloud.ru Object Storage
+
+Cloud.ru предоставляет S3-совместимый API и официально поддерживает Python SDK `boto3`. Создайте приватный бакет и ключ доступа к Object Storage, затем задайте:
+
+```dotenv
+DOCUMENT_STORAGE_BACKEND=s3
+S3_ENDPOINT_URL=https://s3.cloud.ru
+S3_REGION=ru-central-1
+S3_BUCKET=net-specguard-documents
+S3_ACCESS_KEY_ID=<tenant_id>:<key_id>
+S3_SECRET_ACCESS_KEY=<key_secret>
+S3_PREFIX=documents
+```
+
+Секреты не коммитятся и на VM находятся только в `.env`. Бакет приложение автоматически не создаёт. Объекты размещаются по ключу `documents/<user_id>/<YYYY>/<MM>/<DD>/<uuid>-<filename>`. Для удаления старых тестовых документов настройте Lifecycle rule в бакете; рекомендуемый срок для демо — 30 дней.
+
+По умолчанию используется `DOCUMENT_STORAGE_BACKEND=local`, поэтому localhost работает без облачных ключей и сохраняет файлы в `data/documents`.
 
 ## Подключение Foundation Models
 
@@ -151,6 +179,15 @@ LLM_MODEL=ai-sage/GigaChat3-10B-A1.8B
 | `LLM_API_KEY` | API-ключ | пусто |
 | `LLM_MODEL` | ID модели | `ai-sage/GigaChat3-10B-A1.8B` |
 | `MAX_DOCUMENT_CHARS` | Лимит текста для MVP | `120000` |
+| `DOCUMENT_STORAGE_BACKEND` | `local` или `s3` | `local` |
+| `DOCUMENT_STORAGE_PATH` | Каталог локальных оригиналов | `data/documents` |
+| `S3_ENDPOINT_URL` | Endpoint Object Storage | `https://s3.cloud.ru` |
+| `S3_REGION` | Регион подписи AWS SigV4 | `ru-central-1` |
+| `S3_BUCKET` | Приватный бакет документов | пусто |
+| `S3_ACCESS_KEY_ID` | `<tenant_id>:<key_id>` | пусто |
+| `S3_SECRET_ACCESS_KEY` | Секрет ключа Object Storage | пусто |
+| `S3_PREFIX` | Префикс ключей документов | `documents` |
+| `S3_SERVER_SIDE_ENCRYPTION` | Опциональный режим SSE бакета | пусто |
 
 Для Cloud.ru Managed PostgreSQL используйте URL вида:
 
@@ -158,31 +195,36 @@ LLM_MODEL=ai-sage/GigaChat3-10B-A1.8B
 postgresql+psycopg://USER:PASSWORD@HOST:5432/DATABASE?sslmode=require
 ```
 
-## Деплой в Cloud.ru
+## Деплой MVP на Cloud.ru VM
 
-1. Создать Managed PostgreSQL и пользователя приложения.
-2. Создать реестр в Artifact Registry.
-3. Собрать Linux-образ:
+1. Создать Ubuntu VM, назначить публичный IP и разрешить входящие `22`, `80`, `443`.
+2. Установить Docker Engine и Docker Compose plugin.
+3. Клонировать GitHub-репозиторий на VM.
+4. Создать приватный бакет Object Storage и API-ключ с доступом только к этому бакету.
+5. Создать `.env` из `.env.example` и задать как минимум:
 
-   ```bash
-   docker build --platform linux/amd64 -t <registry>.cr.cloud.ru/net-specguard:<tag> .
+   ```dotenv
+   DEMO_PASSWORD=<strong-password>
+   DOCUMENT_STORAGE_BACKEND=s3
+   S3_BUCKET=<bucket>
+   S3_ACCESS_KEY_ID=<tenant_id>:<key_id>
+   S3_SECRET_ACCESS_KEY=<key_secret>
    ```
 
-4. Авторизоваться и отправить образ:
+6. Запустить приложение:
 
    ```bash
-   docker login <registry>.cr.cloud.ru
-   docker push <registry>.cr.cloud.ru/net-specguard:<tag>
+   docker compose up -d --build
    ```
 
-5. Создать Container Service из образа, открыть порт `8080` и добавить health check `/_stcore/health`.
-6. Передать секретами `DATABASE_URL`, `LLM_API_KEY` и `DEMO_PASSWORD`.
-7. Передать обычными переменными `LLM_ENABLED`, `LLM_BASE_URL` и `LLM_MODEL`.
+7. Добавить Caddy или Nginx перед Streamlit, выпустить TLS-сертификат и не публиковать порт PostgreSQL.
+8. Проверить `/_stcore/health`, вход, загрузку ТЗ и появление объекта в бакете.
 
 ## Проверки
 
 ```bash
-pytest
+make test
+make lint
 python -m compileall app.py src
 docker build -t net-specguard:local .
 ```
@@ -191,7 +233,7 @@ docker build -t net-specguard:local .
 
 1. Заменить демо-аутентификацию на OIDC/SSO.
 2. Добавить версионируемый registry шаблонов и правил.
-3. Подключить Object Storage с TTL и шифрованием для исходных документов.
+3. Настроить Lifecycle/TTL и политику шифрования бакета исходных документов.
 4. Добавить исторические пары «ТЗ → комментарий разработчика» в RAG.
 5. Создать закрытый eval-набор и измерять precision, weighted recall и accepted issue rate.
 6. Разделить синхронное UI-приложение и фоновые review jobs при росте нагрузки.

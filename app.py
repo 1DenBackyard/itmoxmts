@@ -9,6 +9,7 @@ from specguard.config import get_settings
 from specguard.database import IssueRecord, Review, get_repository
 from specguard.documents import DocumentExtractionError, extract_text
 from specguard.review import ReviewOrchestrator
+from specguard.storage import DocumentStorageError, create_document_storage
 
 st.set_page_config(page_title="NET SpecGuard", page_icon="🔎", layout="wide")
 
@@ -28,10 +29,10 @@ DECISION_LABELS = {
 
 @st.cache_resource
 def services():
-    return get_repository(), ReviewOrchestrator()
+    return get_repository(), ReviewOrchestrator(), create_document_storage(get_settings())
 
 
-repository, orchestrator = services()
+repository, orchestrator, document_storage = services()
 settings = get_settings()
 
 
@@ -121,7 +122,16 @@ def dashboard(user_id: str) -> None:
 
 def review_page(user_id: str) -> None:
     st.title("Проверка ТЗ")
-    st.caption("Полный текст документа не сохраняется: только hash, метаданные и замечания.")
+    if settings.document_storage_backend.lower() == "s3":
+        st.caption(
+            "Оригинал сохраняется в приватном Cloud.ru Object Storage; "
+            "в БД — только ссылка, hash, метаданные и замечания."
+        )
+    else:
+        st.caption(
+            f"Локальный режим: оригинал сохраняется в {settings.document_storage_path}; "
+            "в БД — только ссылка, hash, метаданные и замечания."
+        )
 
     uploaded = st.file_uploader("Загрузите документ", type=["pdf", "docx", "txt", "md"])
     pasted = st.text_area(
@@ -130,11 +140,13 @@ def review_page(user_id: str) -> None:
 
     if st.button("Запустить ревью", type="primary", use_container_width=True):
         try:
+            stored_document = None
             if uploaded is not None:
                 filename = uploaded.name
+                content = uploaded.getvalue()
                 document_text = extract_text(
                     uploaded.name,
-                    uploaded.getvalue(),
+                    content,
                     max_chars=settings.max_document_chars,
                 )
             elif pasted.strip():
@@ -146,17 +158,27 @@ def review_page(user_id: str) -> None:
 
             with st.spinner("Агенты анализируют документ…"):
                 result = orchestrator.run(document_text)
+                if uploaded is not None:
+                    stored_document = document_storage.put_document(
+                        user_id=user_id,
+                        filename=filename,
+                        content=content,
+                        content_type=uploaded.type,
+                    )
                 review_id = repository.save_review(
                     user_id=user_id,
                     filename=filename,
                     document_text=document_text,
                     result=result,
+                    document=stored_document,
                 )
             st.session_state.last_review_id = review_id
             if result.warnings:
                 st.warning("; ".join(result.warnings))
             st.success(f"Ревью завершено: {result.status}")
         except DocumentExtractionError as exc:
+            st.error(str(exc))
+        except DocumentStorageError as exc:
             st.error(str(exc))
         except Exception as exc:
             st.error(f"Не удалось выполнить проверку: {type(exc).__name__}")
@@ -209,6 +231,12 @@ def architecture_page() -> None:
     )
     mode = "Cloud.ru Foundation Models" if settings.llm_enabled else "локальные правила"
     st.success(f"Текущий режим ревью: {mode}")
+    storage_mode = (
+        f"Cloud.ru Object Storage / {settings.s3_bucket}"
+        if settings.document_storage_backend.lower() == "s3"
+        else f"локальный каталог {settings.document_storage_path}"
+    )
+    st.info(f"Хранилище исходных документов: {storage_mode}")
 
 
 if "user_id" not in st.session_state:
