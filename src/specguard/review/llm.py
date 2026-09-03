@@ -146,21 +146,6 @@ class CloudRuLLMReviewer(Reviewer):
         return [issue.model_copy(update={"agent": self.name}) for issue in result.issues]
 
 
-def _quote_is_verbatim(text: str, issue: ReviewIssue) -> bool:
-    """Дёшевый предфильтр перед вызовом критика: цитата обязана быть в документе дословно.
-
-    Не самостоятельный агент — просто защита от того, чтобы модель тратила контекст
-    и решения на замечания с заведомо придуманной цитатой.
-    """
-    if not issue.evidence:
-        return False
-    normalized_text = " ".join(text.split()).casefold()
-    return any(
-        " ".join(evidence.quote.split()).casefold() in normalized_text
-        for evidence in issue.evidence
-    )
-
-
 class CloudRuEvidenceCritic:
     """Критик: отбрасывает недоказанные и домысленные замечания ролевых агентов."""
 
@@ -170,15 +155,14 @@ class CloudRuEvidenceCritic:
         self._gateway = gateway
 
     def screen(self, text: str, issues: list[ReviewIssue]) -> list[ReviewIssue]:
-        candidates = [issue for issue in issues if _quote_is_verbatim(text, issue)]
-        if not candidates:
+        if not issues:
             return []
 
         result = self._gateway.structured(
             system=prompts.CRITIC_SYSTEM_PROMPT,
             user=(
                 f"Документ ТЗ:\n\n{text}\n\n"
-                f"Замечания на проверку:\n\n{_issues_payload(candidates, with_evidence=True)}"
+                f"Замечания на проверку:\n\n{_issues_payload(issues, with_evidence=True)}"
             ),
             schema_name="critic_response",
             schema=CriticResponse,
@@ -186,7 +170,7 @@ class CloudRuEvidenceCritic:
 
         verdicts = {verdict.issue_id: verdict for verdict in result.verdicts}
         confirmed: list[ReviewIssue] = []
-        for index, issue in enumerate(candidates, start=1):
+        for index, issue in enumerate(issues, start=1):
             verdict = verdicts.get(f"i{index}")
             if verdict is None:
                 # Пропущенное критиком замечание не считаем отклонённым:

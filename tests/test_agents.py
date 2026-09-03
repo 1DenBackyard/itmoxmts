@@ -80,17 +80,6 @@ def test_critic_keeps_issue_missing_from_verdicts() -> None:
     assert len(kept) == 1
 
 
-def test_critic_drops_hallucinated_quote_before_calling_model() -> None:
-    gateway = FakeGateway()  # ни одного ответа не запрограммировано — модель не должна звать
-
-    kept = CloudRuEvidenceCritic(gateway).screen(
-        DOCUMENT, [make_issue(evidence=[{"quote": "Этой фразы в документе нет вообще"}])]
-    )
-
-    assert kept == []
-    assert gateway.calls == []
-
-
 def test_judge_merges_duplicates_and_reassigns_severity() -> None:
     gateway = FakeGateway(
         JudgeResponse.model_validate(
