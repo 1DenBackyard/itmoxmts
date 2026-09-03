@@ -173,6 +173,8 @@ LLM_MODEL=ai-sage/GigaChat3-10B-A1.8B
 | Переменная | Назначение | Значение по умолчанию |
 |---|---|---|
 | `DATABASE_URL` | SQLAlchemy URL | `sqlite:///data/specguard.db` |
+| `APP_BIND_ADDRESS` | Адрес публикации Docker-порта | `127.0.0.1` |
+| `APP_PORT` | Порт приложения на хосте | `8501` |
 | `DEMO_PASSWORD` | Пароль демо-аккаунтов | `demo1234` |
 | `LLM_ENABLED` | Включить LLM-агентов | `false` |
 | `LLM_BASE_URL` | Endpoint модели | Cloud.ru Foundation Models |
