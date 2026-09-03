@@ -29,7 +29,7 @@ def test_real_history_decisions_progress_and_incomplete_review(tmp_path, monkeyp
     app.text_input[1].set_value("demo1234")
     app.button[0].click().run()
     assert not app.exception
-    assert app.title[0].value == "Проверка ТЗ"
+    assert app.title[0].value == "Новое ревью"
 
     app.sidebar.radio[0].set_value("История").run()
     assert not app.exception
