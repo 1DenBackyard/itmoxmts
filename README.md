@@ -1,6 +1,6 @@
 # NET SpecGuard
 
-Обновлённый интерфейс на Streamlit: [экраны, пользовательский путь и границы переноса](docs/production-ui.md).
+Production-интерфейс на HTML/CSS/JavaScript + FastAPI: [перенос и запуск](docs/html-production.md). Прежний Streamlit сохранён для отката.
 
 Дополнительные требования кейсодателя: [чек-лист анализа и структура шаблона](docs/caseholder-guidance-2026-09-03.md).
 
@@ -17,7 +17,7 @@ NET SpecGuard — прототип мультиагентной системы �
 Изменения коллег интегрированы без замены рабочего приложения:
 [разбор интеграции](docs/integration-2026-09-03.md),
 [HTML UX-прототип](prototypes/web-review/README.md).
-HTML использует демонстрационные находки/прогресс и не подключён к production.
+Исходный прототип остаётся демо. Его оформление перенесено в `web/`, где результаты, история и статистика подключены к настоящему API.
 
 - личный кабинет сотрудника;
 - загрузка PDF, DOCX, TXT и Markdown или вставка текста;
@@ -28,13 +28,13 @@ HTML использует демонстрационные находки/про
 - подтверждение, отклонение и закрытие найденной проблемы;
 - персональная статистика по подтверждённым категориям ошибок;
 - хранение оригиналов в локальном storage для разработки или в приватном Cloud.ru Object Storage;
-- хранение в БД только ссылки на объект, hash, метаданных проверки и замечаний.
+- хранение в БД ссылок на объекты, метаданных, замечаний, сессий и текста новых проверок.
 
 ## Логическая архитектура
 
 ```mermaid
 flowchart LR
-    USER["Сотрудник"] --> LK["Личный кабинет<br/>Streamlit"]
+    USER["Сотрудник"] --> LK["Личный кабинет<br/>HTML / CSS / JS + FastAPI"]
     LK --> INPUT["Загрузка ТЗ"]
     INPUT --> PREP["Извлечение полного текста"]
     INPUT --> OBJECTS[("Хранилище оригиналов<br/>local / Cloud.ru S3")]
@@ -115,7 +115,7 @@ flowchart LR
     USER["Сотрудник"] -->|HTTPS| PROXY
 
     subgraph VM["Cloud.ru VM · Ubuntu"]
-        PROXY["Caddy / Nginx<br/>TLS и reverse proxy"] --> APP["Streamlit<br/>ЛК + review engine"]
+        PROXY["Caddy / Nginx<br/>TLS и reverse proxy"] --> APP["HTML + FastAPI<br/>ЛК + фоновые проверки"]
         APP --> PG[("PostgreSQL<br/>пользователи · проверки · ошибки")]
     end
 
@@ -123,7 +123,7 @@ flowchart LR
     APP --> FM["Cloud.ru Foundation Models<br/>OpenAI-compatible API"]
 ```
 
-Для хакатонного MVP используем одну **Cloud.ru VM** и Docker Compose: так проще развернуть и диагностировать прототип. Streamlit и PostgreSQL работают в отдельных контейнерах на VM. Исходные документы сохраняются в приватном бакете **Cloud.ru Object Storage**, а в PostgreSQL находятся только ключ объекта, hash, размер, MIME-тип, результаты проверок и персональная статистика. Публичный доступ к бакету не требуется.
+Для MVP используем одну **Cloud.ru VM** и Docker Compose: FastAPI и PostgreSQL в отдельных контейнерах. Оригиналы хранятся в настроенном local/S3 storage (Cloud.ru — приватный бакет). БД хранит метаданные, результаты, статистику, сессии и текст новых проверок. API запускается с одним worker: до четырёх задач суммарно, две одновременно; одна активная проверка на сотрудника.
 
 Когда появится нагрузка, без изменения прикладной логики можно вынести PostgreSQL в Managed PostgreSQL, образ — в Artifact Registry, а приложение — в Container Apps.
 
@@ -140,10 +140,12 @@ flowchart LR
 
 ```text
 .
-├── app.py                         # Streamlit UI
+├── app.py                         # Прежний Streamlit UI для отката
+├── web/                           # Production HTML/CSS/JavaScript
 ├── src/specguard/
 │   ├── auth.py                    # Демо-аутентификация
 │   ├── config.py                  # Конфигурация окружения
+│   ├── web.py                     # FastAPI, сессии и фоновые задания
 │   ├── database.py                # SQLAlchemy и репозиторий
 │   ├── documents.py               # PDF/DOCX/TXT extraction
 │   ├── storage.py                 # Local/S3 adapter исходных документов

@@ -33,6 +33,11 @@ jobs:
         run: |
           for file in prototypes/web-review/web/js/*.js; do node --check "$file"; done
           node --test tests/web-prototype.test.cjs
+      - name: Verify production HTML frontend
+        run: |
+          node --check web/js/core.js
+          node --check web/js/app.js
+          node --test tests/web-production.test.cjs
 
   docker:
     runs-on: ubuntu-latest
