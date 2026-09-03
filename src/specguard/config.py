@@ -24,9 +24,9 @@ class Settings:
     llm_api_key: str
     llm_model: str
     max_document_chars: int
-    llm_fallback_model: str = "openai/gpt-oss-120b"
+    llm_fallback_model: str = ""
     llm_control_enabled: bool = True
-    llm_timeout_seconds: float = 45.0
+    llm_timeout_seconds: float = 600.0
     llm_max_retries: int = 0
     document_storage_backend: str = "local"
     document_storage_path: str = "data/documents"
@@ -47,11 +47,11 @@ def get_settings() -> Settings:
         llm_enabled=_as_bool(os.getenv("LLM_ENABLED")),
         llm_base_url=os.getenv("LLM_BASE_URL", "https://foundation-models.api.cloud.ru/v1"),
         llm_api_key=os.getenv("LLM_API_KEY", ""),
-        llm_model=os.getenv("LLM_MODEL", "zai-org/GLM-5.1"),
+        llm_model=os.getenv("LLM_MODEL", "openai/gpt-oss-120b"),
         max_document_chars=int(os.getenv("MAX_DOCUMENT_CHARS", "120000")),
-        llm_fallback_model=os.getenv("LLM_FALLBACK_MODEL", "openai/gpt-oss-120b"),
+        llm_fallback_model=os.getenv("LLM_FALLBACK_MODEL", ""),
         llm_control_enabled=_as_bool(os.getenv("LLM_CONTROL_ENABLED"), default=True),
-        llm_timeout_seconds=float(os.getenv("LLM_TIMEOUT_SECONDS", "45")),
+        llm_timeout_seconds=float(os.getenv("LLM_TIMEOUT_SECONDS", "600")),
         llm_max_retries=int(os.getenv("LLM_MAX_RETRIES", "0")),
         document_storage_backend=os.getenv("DOCUMENT_STORAGE_BACKEND", "local"),
         document_storage_path=os.getenv("DOCUMENT_STORAGE_PATH", "data/documents"),

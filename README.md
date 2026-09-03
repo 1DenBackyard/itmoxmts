@@ -196,9 +196,10 @@ S3_PREFIX=documents
 LLM_ENABLED=true
 LLM_BASE_URL=https://foundation-models.api.cloud.ru/v1
 LLM_API_KEY=replace-me
-LLM_MODEL=zai-org/GLM-5.1
-LLM_FALLBACK_MODEL=openai/gpt-oss-120b
-LLM_TIMEOUT_SECONDS=45
+LLM_MODEL=openai/gpt-oss-120b
+LLM_FALLBACK_MODEL=
+LLM_CONTROL_ENABLED=true
+LLM_TIMEOUT_SECONDS=600
 LLM_MAX_RETRIES=0
 ```
 
@@ -216,10 +217,10 @@ LLM_MAX_RETRIES=0
 | `LLM_ENABLED` | Включить LLM-агентов | `false` |
 | `LLM_BASE_URL` | Endpoint модели | Cloud.ru Foundation Models |
 | `LLM_API_KEY` | API-ключ | пусто |
-| `LLM_MODEL` | Основная модель | `zai-org/GLM-5.1` |
-| `LLM_FALLBACK_MODEL` | Резервная модель при ошибке основной | `openai/gpt-oss-120b` |
+| `LLM_MODEL` | Основная модель | `openai/gpt-oss-120b` |
+| `LLM_FALLBACK_MODEL` | Резервная модель при ошибке основной | пусто |
 | `LLM_CONTROL_ENABLED` | Включить LLM-критика и LLM-судью | `true` |
-| `LLM_TIMEOUT_SECONDS` | Максимальное ожидание одного LLM-агента | `45` |
+| `LLM_TIMEOUT_SECONDS` | Технический предел ожидания LLM-агента | `600` |
 | `LLM_MAX_RETRIES` | Число повторов зависшего LLM-запроса | `0` |
 | `MAX_DOCUMENT_CHARS` | Лимит текста для MVP | `120000` |
 | `DOCUMENT_STORAGE_BACKEND` | `local` или `s3` | `local` |

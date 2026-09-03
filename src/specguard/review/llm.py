@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import logging
+import time
 from typing import TypeVar
 
 from openai import OpenAI
@@ -29,6 +31,8 @@ REVIEWER_ROLES = (
     prompts.ARCHITECT,
     prompts.QA,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class LLMGateway:
@@ -60,6 +64,7 @@ class LLMGateway:
     ) -> ResponseT:
         last_error: Exception | None = None
         for model in self._models:
+            started_at = time.monotonic()
             try:
                 response = self._client.chat.completions.create(
                     model=model,
@@ -78,8 +83,21 @@ class LLMGateway:
                     },
                 )
                 payload = response.choices[0].message.content or "{}"
-                return schema.model_validate(json.loads(payload))
+                result = schema.model_validate(json.loads(payload))
+                logger.info(
+                    "LLM call completed schema=%s model=%s seconds=%.1f",
+                    schema_name,
+                    model,
+                    time.monotonic() - started_at,
+                )
+                return result
             except Exception as exc:
+                logger.exception(
+                    "LLM call failed schema=%s model=%s seconds=%.1f",
+                    schema_name,
+                    model,
+                    time.monotonic() - started_at,
+                )
                 last_error = exc
 
         if last_error is not None:
