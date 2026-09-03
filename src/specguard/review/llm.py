@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import logging
+import time
 
 from openai import OpenAI
 
@@ -22,6 +24,8 @@ ROLE_PROMPTS = {
     "LLM · QA": ("Проверяй тестируемость, ожидаемые результаты, негативные и граничные сценарии."),
 }
 
+logger = logging.getLogger(__name__)
+
 
 class CloudRuLLMReviewer(Reviewer):
     def __init__(self, name: str, settings: Settings) -> None:
@@ -42,6 +46,7 @@ class CloudRuLLMReviewer(Reviewer):
 
         last_error: Exception | None = None
         for model in dict.fromkeys(models):
+            started_at = time.monotonic()
             try:
                 response = self._client.chat.completions.create(
                     model=model,
@@ -72,8 +77,21 @@ class CloudRuLLMReviewer(Reviewer):
                 )
                 payload = response.choices[0].message.content or '{"issues": []}'
                 result = AgentResponse.model_validate(json.loads(payload))
+                logger.info(
+                    "LLM reviewer completed reviewer=%s model=%s seconds=%.1f issues=%d",
+                    self.name,
+                    model,
+                    time.monotonic() - started_at,
+                    len(result.issues),
+                )
                 return [issue.model_copy(update={"agent": self.name}) for issue in result.issues]
             except Exception as exc:
+                logger.exception(
+                    "LLM reviewer failed reviewer=%s model=%s seconds=%.1f",
+                    self.name,
+                    model,
+                    time.monotonic() - started_at,
+                )
                 last_error = exc
 
         if last_error is not None:
