@@ -82,7 +82,10 @@ class LLMGateway:
                         },
                     },
                 )
-                payload = response.choices[0].message.content or "{}"
+                choice = response.choices[0]
+                if choice.finish_reason != "stop" or not choice.message.content:
+                    raise ValueError("Модель не вернула завершённый структурированный ответ")
+                payload = choice.message.content
                 result = schema.model_validate(json.loads(payload))
                 logger.info(
                     "LLM call completed schema=%s model=%s seconds=%.1f",
@@ -92,11 +95,12 @@ class LLMGateway:
                 )
                 return result
             except Exception as exc:
-                logger.exception(
-                    "LLM call failed schema=%s model=%s seconds=%.1f",
+                logger.error(
+                    "LLM call failed schema=%s model=%s seconds=%.1f error_type=%s",
                     schema_name,
                     model,
                     time.monotonic() - started_at,
+                    type(exc).__name__,
                 )
                 last_error = exc
 
@@ -169,6 +173,9 @@ class CloudRuEvidenceCritic:
         )
 
         verdicts = {verdict.issue_id: verdict for verdict in result.verdicts}
+        expected = {f"i{index}" for index in range(1, len(issues) + 1)}
+        if set(verdicts) != expected or len(result.verdicts) != len(issues):
+            raise ValueError("Критик должен вынести ровно один вердикт по каждому замечанию")
         confirmed: list[ReviewIssue] = []
         for index, issue in enumerate(issues, start=1):
             verdict = verdicts.get(f"i{index}")
@@ -196,7 +203,7 @@ class CloudRuIssueJudge:
         self._gateway = gateway
 
     def arbitrate(self, issues: list[ReviewIssue]) -> list[ReviewIssue]:
-        if len(issues) < 2:
+        if not issues:
             return issues
 
         result = self._gateway.structured(
@@ -208,11 +215,18 @@ class CloudRuIssueJudge:
 
         decisions = {decision.issue_id: decision for decision in result.decisions}
         issue_ids = [f"i{index}" for index in range(1, len(issues) + 1)]
+        if set(decisions) != set(issue_ids) or len(result.decisions) != len(issues):
+            raise ValueError("Судья должен вынести ровно одно решение по каждому замечанию")
         kept_ids = {
             issue_id
             for issue_id in issue_ids
             if issue_id not in decisions or decisions[issue_id].keep
         }
+
+        for issue_id, decision in decisions.items():
+            if not decision.keep and decision.duplicate_of:
+                if decision.duplicate_of == issue_id or decision.duplicate_of not in kept_ids:
+                    raise ValueError("Ссылка на дубль должна вести к оставленному замечанию")
 
         kept: list[ReviewIssue] = []
         for issue_id, issue in zip(issue_ids, issues, strict=True):

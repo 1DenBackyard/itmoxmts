@@ -72,12 +72,11 @@ def test_critic_drops_rejected_and_scales_confidence() -> None:
     assert kept[0].confidence == pytest.approx(0.72)
 
 
-def test_critic_keeps_issue_missing_from_verdicts() -> None:
+def test_critic_reports_incomplete_verdicts() -> None:
     gateway = FakeGateway(CriticResponse(verdicts=[]))
 
-    kept = CloudRuEvidenceCritic(gateway).screen(DOCUMENT, [make_issue()])
-
-    assert len(kept) == 1
+    with pytest.raises(ValueError, match="ровно один"):
+        CloudRuEvidenceCritic(gateway).screen(DOCUMENT, [make_issue()])
 
 
 def test_judge_merges_duplicates_and_reassigns_severity() -> None:

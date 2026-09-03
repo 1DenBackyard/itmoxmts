@@ -24,7 +24,7 @@ def reviewer_returning(issue: ReviewIssue) -> CloudRuLLMReviewer:
 def test_no_reviewers_means_no_review_without_failing() -> None:
     result = ReviewOrchestrator(make_settings(), reviewers=[]).run(DOCUMENT)
 
-    assert result.status == "Готово к передаче"
+    assert result.status == "Проверка не выполнена"
     assert result.issues == []
     assert any("не настроены" in warning for warning in result.warnings)
 
@@ -54,9 +54,9 @@ def test_reviewer_failure_is_reported_as_warning_and_others_still_run() -> None:
     failing_reviewer = CloudRuLLMReviewer("Архитектор", failing_gateway)
     ok_reviewer = reviewer_returning(make_issue())
 
-    result = ReviewOrchestrator(
-        make_settings(), reviewers=[failing_reviewer, ok_reviewer]
-    ).run(DOCUMENT)
+    result = ReviewOrchestrator(make_settings(), reviewers=[failing_reviewer, ok_reviewer]).run(
+        DOCUMENT
+    )
 
     assert len(result.issues) == 1
     assert any("проверка недоступна" in warning for warning in result.warnings)
@@ -139,3 +139,29 @@ def test_orchestrator_degrades_when_control_agents_fail() -> None:
 
     assert any(issue.category == "load_strategy" for issue in result.issues)
     assert any("перепроверка недоступна" in warning for warning in result.warnings)
+    assert result.status == "Проверка неполная"
+
+
+def test_all_reviewers_fail_is_never_ready() -> None:
+    reviewer = CloudRuLLMReviewer("Аналитик", FakeGateway(RuntimeError("timeout")))
+    result = ReviewOrchestrator(make_settings(), reviewers=[reviewer]).run(DOCUMENT)
+    assert result.status == "Проверка неполная"
+    assert result.issues == []
+
+
+def test_failed_reviewer_and_empty_success_is_not_ready() -> None:
+    failed = CloudRuLLMReviewer("QA", FakeGateway(RuntimeError("timeout")))
+    clean = CloudRuLLMReviewer("Аналитик", FakeGateway(AgentResponse(issues=[])))
+    result = ReviewOrchestrator(make_settings(), reviewers=[failed, clean]).run(DOCUMENT)
+    assert result.status == "Проверка неполная"
+
+
+def test_incomplete_critic_response_preserves_findings_with_warning() -> None:
+    reviewer = reviewer_returning(make_issue())
+    result = ReviewOrchestrator(
+        make_settings(),
+        reviewers=[reviewer],
+        llm_critic=CloudRuEvidenceCritic(FakeGateway(CriticResponse(verdicts=[]))),
+    ).run(DOCUMENT)
+    assert result.status == "Проверка неполная"
+    assert len(result.issues) == 1

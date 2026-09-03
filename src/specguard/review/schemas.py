@@ -31,7 +31,7 @@ class ReviewIssue(BaseModel):
 
 
 class AgentResponse(BaseModel):
-    issues: list[ReviewIssue] = Field(default_factory=list)
+    issues: list[ReviewIssue]
 
 
 class Verdict(StrEnum):
@@ -49,7 +49,7 @@ class CriticVerdict(BaseModel):
 
 
 class CriticResponse(BaseModel):
-    verdicts: list[CriticVerdict] = Field(default_factory=list)
+    verdicts: list[CriticVerdict]
 
 
 class JudgeDecision(BaseModel):
@@ -63,7 +63,7 @@ class JudgeDecision(BaseModel):
 
 
 class JudgeResponse(BaseModel):
-    decisions: list[JudgeDecision] = Field(default_factory=list)
+    decisions: list[JudgeDecision]
 
 
 class ReviewResult(BaseModel):

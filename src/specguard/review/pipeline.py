@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import logging
+import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from specguard.config import Settings, get_settings
@@ -13,6 +15,8 @@ from .llm import (
     cloud_reviewers,
 )
 from .schemas import ReviewIssue, ReviewResult, Severity
+
+logger = logging.getLogger(__name__)
 
 _SEVERITY_RANK = {
     Severity.BLOCKER: 0,
@@ -65,7 +69,7 @@ class ReviewOrchestrator:
             warnings.append(
                 "LLM-агенты не настроены (LLM_ENABLED/LLM_API_KEY): ревью не выполнялось."
             )
-            return ReviewResult(status="Готово к передаче", issues=[], warnings=warnings)
+            return ReviewResult(status="Проверка не выполнена", issues=[], warnings=warnings)
 
         issues = self._collect(text, warnings)
 
@@ -86,10 +90,12 @@ class ReviewOrchestrator:
                 )
 
         issues = _sort_by_severity(issues)
-        return ReviewResult(status=self._status(issues), issues=issues, warnings=warnings)
+        status = "Проверка неполная" if warnings else self._status(issues)
+        return ReviewResult(status=status, issues=issues, warnings=warnings)
 
     def _collect(self, text: str, warnings: list[str]) -> list[ReviewIssue]:
         candidates: list[ReviewIssue] = []
+        started_at = time.monotonic()
         with ThreadPoolExecutor(max_workers=max(1, len(self.reviewers))) as executor:
             futures = {
                 executor.submit(reviewer.review, text): reviewer for reviewer in self.reviewers
@@ -97,8 +103,16 @@ class ReviewOrchestrator:
             for future in as_completed(futures):
                 reviewer = futures[future]
                 try:
-                    candidates.extend(future.result())
+                    findings = future.result()
+                    candidates.extend(findings)
+                    logger.info(
+                        "Reviewer completed agent=%s elapsed=%.1f issues=%d",
+                        reviewer.name, time.monotonic() - started_at, len(findings),
+                    )
                 except Exception as exc:
+                    logger.error(
+                        "Reviewer failed agent=%s error_type=%s", reviewer.name, type(exc).__name__
+                    )
                     warnings.append(f"{reviewer.name}: проверка недоступна ({type(exc).__name__})")
         return candidates
 

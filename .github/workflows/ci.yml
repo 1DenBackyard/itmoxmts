@@ -26,6 +26,13 @@ jobs:
       - run: ruff check .
       - run: pytest
       - run: python -m compileall app.py src
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Verify isolated web prototype
+        run: |
+          for file in prototypes/web-review/web/js/*.js; do node --check "$file"; done
+          node --test tests/web-prototype.test.cjs
 
   docker:
     runs-on: ubuntu-latest

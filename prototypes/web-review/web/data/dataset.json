@@ -1,0 +1,1537 @@
+{
+  "block_defs": [
+    {
+      "id": "general",
+      "title": "Общие сведения",
+      "aliases": [
+        "общие сведения"
+      ],
+      "important": true,
+      "required_for": [
+        "flow",
+        "source",
+        "aggregate_mart"
+      ]
+    },
+    {
+      "id": "problem",
+      "title": "Решаемая проблема",
+      "aliases": [
+        "решаемая проблема"
+      ],
+      "important": true,
+      "required_for": [
+        "flow",
+        "source"
+      ]
+    },
+    {
+      "id": "metrics",
+      "title": "Продуктовые метрики",
+      "aliases": [
+        "продуктовые метрики"
+      ],
+      "important": true,
+      "required_for": [
+        "flow"
+      ]
+    },
+    {
+      "id": "customers",
+      "title": "Заказчики",
+      "aliases": [
+        "заказчики"
+      ],
+      "important": true,
+      "required_for": [
+        "flow",
+        "source",
+        "aggregate_mart"
+      ]
+    },
+    {
+      "id": "nfr",
+      "title": "Нефункциональные требования",
+      "aliases": [
+        "нефункциональные требования",
+        "бизнес-требования",
+        "требования к агрегату",
+        "способ загрузки",
+        "регламент",
+        "глубина данных"
+      ],
+      "important": true,
+      "required_for": [
+        "flow",
+        "source",
+        "aggregate_mart"
+      ]
+    },
+    {
+      "id": "source_systems",
+      "title": "Системы-источники",
+      "aliases": [
+        "системы-источники",
+        "системы источники"
+      ],
+      "important": true,
+      "required_for": [
+        "flow",
+        "source",
+        "aggregate_mart"
+      ]
+    },
+    {
+      "id": "data_catalog",
+      "title": "Data Catalog",
+      "aliases": [
+        "data catalog",
+        "каталог данных"
+      ],
+      "important": true,
+      "required_for": [
+        "flow",
+        "aggregate_mart"
+      ]
+    },
+    {
+      "id": "gitlab",
+      "title": "Исходники проекта / GitLab",
+      "aliases": [
+        "исходники проекта",
+        "gitlab",
+        "исходный код"
+      ],
+      "important": true,
+      "required_for": [
+        "flow"
+      ]
+    },
+    {
+      "id": "team",
+      "title": "Команда",
+      "aliases": [
+        "команда"
+      ],
+      "important": true,
+      "required_for": [
+        "flow",
+        "source",
+        "aggregate_mart"
+      ]
+    },
+    {
+      "id": "jira",
+      "title": "JIRA",
+      "aliases": [
+        "jira"
+      ],
+      "important": true,
+      "required_for": [
+        "flow",
+        "aggregate_mart"
+      ]
+    },
+    {
+      "id": "sources",
+      "title": "Источники данных",
+      "aliases": [
+        "источники данных",
+        "источники и приемники данных",
+        "источники и приёмники данных",
+        "1. источники данных"
+      ],
+      "important": true,
+      "required_for": [
+        "flow",
+        "source",
+        "aggregate_mart"
+      ]
+    },
+    {
+      "id": "enrichment",
+      "title": "Источники обогащения данных",
+      "aliases": [
+        "источники обогащения",
+        "обогащения данных"
+      ],
+      "important": true,
+      "required_for": [
+        "flow"
+      ]
+    },
+    {
+      "id": "sinks",
+      "title": "Приёмники данных",
+      "aliases": [
+        "приемники данных",
+        "приёмники данных",
+        "приемники:",
+        "приёмники:"
+      ],
+      "important": true,
+      "required_for": [
+        "flow",
+        "source"
+      ]
+    },
+    {
+      "id": "flow_schema",
+      "title": "Схема потоков данных",
+      "aliases": [
+        "схема потоков данных",
+        "схема потока"
+      ],
+      "important": true,
+      "required_for": [
+        "flow"
+      ]
+    },
+    {
+      "id": "algorithm",
+      "title": "Алгоритм обработки",
+      "aliases": [
+        "алгоритм обработки потока",
+        "алгоритм обработки",
+        "алгоритм расчёта",
+        "алгоритм расчета",
+        "шаг 1. фильтрация"
+      ],
+      "important": true,
+      "required_for": [
+        "flow",
+        "source",
+        "aggregate_mart"
+      ]
+    },
+    {
+      "id": "structure",
+      "title": "Структура данных",
+      "aliases": [
+        "структура данных",
+        "2. структура данных",
+        "структура данных cdm"
+      ],
+      "important": true,
+      "required_for": [
+        "flow",
+        "source",
+        "aggregate_mart"
+      ]
+    },
+    {
+      "id": "sample",
+      "title": "Пример данных",
+      "aliases": [
+        "пример данных"
+      ],
+      "important": true,
+      "required_for": [
+        "flow",
+        "source",
+        "aggregate_mart"
+      ]
+    },
+    {
+      "id": "ddl",
+      "title": "DDL",
+      "aliases": [
+        "ddl"
+      ],
+      "important": true,
+      "required_for": [
+        "flow",
+        "aggregate_mart"
+      ]
+    },
+    {
+      "id": "faq",
+      "title": "FAQ",
+      "aliases": [
+        "faq"
+      ],
+      "important": true,
+      "required_for": [
+        "flow",
+        "source"
+      ]
+    },
+    {
+      "id": "changelog",
+      "title": "История изменений",
+      "aliases": [
+        "история изменений"
+      ],
+      "important": true,
+      "required_for": [
+        "flow",
+        "source",
+        "aggregate_mart"
+      ]
+    }
+  ],
+  "samples": [
+    {
+      "id": "Тестовые данные для Хакатона-2-4",
+      "filename": "Тестовые данные для Хакатона-2-4.pdf",
+      "label": "Потоки данных (эталон)",
+      "doc_type": "flow",
+      "text": "Общие сведения\r\nМодуль обеспечивает получение сведений о текущем и историческом \r\nместоположении абонентских устройств в реальном времени. Обработка \r\nоснована на сигнальном трафике сетей радиодоступа (3G/4G), поступающем \r\nот платформы PROVIDER_GEO.\r\nРешаемая проблема\r\nЗамена устаревшей технологии геолокации абонентов по данным \r\nрадиоинтерфейса. Цель — создание отечественного решения с потоковой \r\nобработкой и интеграцией в Data Lake.\r\nПродуктовые метрики\r\n Задержка: < 1 мин\r\n Пропускная способность: до 100 000 событий/сек\r\n Точность локации: 3G — 50–500 м, 4G — 10–100 м\r\nЗаказчики\r\nBigData Unit X\r\nНефункциональные требования\r\n Инкрементная загрузка по часовым партициям\r\n Географическое разбиение по регионам\r\n Стриминг в реальном времени (задержка ≈ 0 сек)\r\n Хранение: Kafka — 24 ч, RAW-слой — 30 дней\r\nСистемы-источники\r\n PROVIDER_GEO — мультивендорная платформа агрегации событий \r\n3G/4G и MDT.\r\nСхема потоков данных\r\nPROVIDER_GEO → Kafka (топики по регионам) → Apache Flink → RAW → \r\nDDS → ADDS → CDM\r\n Мониторинг: LINK_DASHBOARD_GEO\r\n Исходный код: LINK_GITLAB_PROJECT\r\nJIRA\r\nPROJECT-XX123 — Описание потоковой обработки геоданных\r\nLINK_JIRA_TASK\r\nКоманда\r\n USER_A — Product Owner\r\n USER_B — Data Analyst\r\n USER_C — Backend Developer\n\nИсточники и приемники данных\r\nPROVIDER_GEO → Kafka (24 часа хранения):\r\n| Регион | Топик 3G | Топик 4G |\n| --- | --- | --- |\n| Центр | TOPIC_GEO3G_CENTRAL | TOPIC_GEO4G_CENTRAL |\n| Дальний Восток | TOPIC_GEO3G_EAST | TOPIC_GEO4G_EAST |\n| Северо-Запад | TOPIC_GEO3G_NW | TOPIC_GEO4G_NW |\n| Поволжье | TOPIC_GEO3G_VOLGA | TOPIC_GEO4G_VOLGA |\n| Сибирь | TOPIC_GEO3G_SIB | TOPIC_GEO4G_SIB |\n| Юг | TOPIC_GEO3G_SOUTH | TOPIC_GEO4G_SOUTH |\n| Урал | TOPIC_GEO3G_URAL | TOPIC_GEO4G_URAL |\n\nПриемники:\r\n| Слой | Таблица | Описание |\n| --- | --- | --- |\n| RAW | TABLE_GEO_RAW_3G | Данные по 3G (необработанные) |\n| RAW | TABLE_GEO_RAW_4G | Данные по 4G (необработанные) |\n| DDS | TABLE_GEO_DDS_DETAILED | Детальные события геолокации |\n| ADDS | TABLE_GEO_ADDS_AGG | Агрегированные события |\n| CDM | TABLE_GEO_CDM_INTERVALS | Геоинтервалы по абонентам |\n\nСтруктура данных\r\nТаблица: TABLE_GEO_RAW_3G\n| Поле | Тип данных | Описание |\n| --- | --- | --- |\n| FIELD_REGION | string | Регион |\n| FIELD_DATE_EVENT | date | Дата события |\n| FIELD_HOUR | int | Час события (партиция) |\n| FIELD_IMSI | string | IMSI |\n| FIELD_MSISDN | string | MSISDN |\n| FIELD_IMEI | string | IMEI |\n| FIELD_LAT | double | Широта геопозиции |\n| FIELD_LON | double | Долгота геопозиции |\n| FIELD_RADIUS | int | Радиус точности (метры) |\n| FIELD_CELL_START | long | ID начальной базовой станции |\n| FIELD_CELL_END | long | ID конечной БС |\n| FIELD_TIME_START | long | Время начала события |\n| FIELD_TIME_END | long | Время окончания события |\n| FIELD_LOC_ACCURACY | int | Точность локации (метры) |\n| FIELD_VENDOR | string | Вендор оборудования БС |\n\nТаблица: TABLE_GEO_RAW_4G\n| Поле | Тип данных | Описание |\n| --- | --- | --- |\n| FIELD_REGION | string | Регион |\n| FIELD_DATE_EVENT | date | Дата события |\n| FIELD_HOUR | int | Час события (партиция) |\n| FIELD_IMSI | string | IMSI |\n| FIELD_MSISDN | string | MSISDN |\n| FIELD_IMEI | string | IMEI |\n| FIELD_LAT | double | Широта геопозиции |\n| FIELD_LON | double | Долгота геопозиции |\n| FIELD_RADIUS | int | Радиус точности (метры) |\n| FIELD_CELL_START | long | ID начальной базовой станции |\n| FIELD_CELL_END | long | ID конечной БС |\n| FIELD_TIME_START | long | Время начала события |\n| FIELD_TIME_END | long | Время окончания события |\n| FIELD_LOC_ACCURACY | int | Точность локации (метры) |\n| FIELD_SERVICE_TYPE | int | Тип формата связи (услуга) |\n\nДополнительная информация\r\nДокументы:\r\n «Описание протоколов сигнальных сообщений в 3G/4G»\r\n «Форматы MDT и Measurement Trigger»\r\nАлгоритмы: обработка хэндоверов, геоинтервалов, работа с RNC/eNodeB.",
+      "blocks": [
+        {
+          "id": "general",
+          "title": "Общие сведения",
+          "content": "Модуль обеспечивает получение сведений о текущем и историческом \nместоположении абонентских устройств в реальном времени. Обработка \nоснована на сигнальном трафике сетей радиодоступа (3G/4G), поступающем \nот платформы PROVIDER_GEO.",
+          "present": true,
+          "important": true,
+          "start_line": 1,
+          "matched_heading": "Общие сведения"
+        },
+        {
+          "id": "problem",
+          "title": "Решаемая проблема",
+          "content": "Замена устаревшей технологии геолокации абонентов по данным \nрадиоинтерфейса. Цель — создание отечественного решения с потоковой \nобработкой и интеграцией в Data Lake.",
+          "present": true,
+          "important": true,
+          "start_line": 6,
+          "matched_heading": "Решаемая проблема"
+        },
+        {
+          "id": "metrics",
+          "title": "Продуктовые метрики",
+          "content": " Задержка: < 1 мин\n Пропускная способность: до 100 000 событий/сек\n Точность локации: 3G — 50–500 м, 4G — 10–100 м",
+          "present": true,
+          "important": true,
+          "start_line": 10,
+          "matched_heading": "Продуктовые метрики"
+        },
+        {
+          "id": "customers",
+          "title": "Заказчики",
+          "content": "BigData Unit X",
+          "present": true,
+          "important": true,
+          "start_line": 14,
+          "matched_heading": "Заказчики"
+        },
+        {
+          "id": "nfr",
+          "title": "Нефункциональные требования",
+          "content": " Инкрементная загрузка по часовым партициям\n Географическое разбиение по регионам\n Стриминг в реальном времени (задержка ≈ 0 сек)\n Хранение: Kafka — 24 ч, RAW-слой — 30 дней",
+          "present": true,
+          "important": true,
+          "start_line": 16,
+          "matched_heading": "Нефункциональные требования"
+        },
+        {
+          "id": "source_systems",
+          "title": "Системы-источники",
+          "content": " PROVIDER_GEO — мультивендорная платформа агрегации событий \n3G/4G и MDT.",
+          "present": true,
+          "important": true,
+          "start_line": 21,
+          "matched_heading": "Системы-источники"
+        },
+        {
+          "id": "data_catalog",
+          "title": "Data Catalog",
+          "content": "",
+          "present": false,
+          "important": true,
+          "start_line": null,
+          "matched_heading": ""
+        },
+        {
+          "id": "gitlab",
+          "title": "Исходники проекта / GitLab",
+          "content": "—",
+          "present": true,
+          "important": true,
+          "start_line": 28,
+          "matched_heading": " Исходный код: LINK_GITLAB_PROJECT"
+        },
+        {
+          "id": "team",
+          "title": "Команда",
+          "content": " USER_A — Product Owner\n USER_B — Data Analyst\n USER_C — Backend Developer",
+          "present": true,
+          "important": true,
+          "start_line": 32,
+          "matched_heading": "Команда"
+        },
+        {
+          "id": "jira",
+          "title": "JIRA",
+          "content": "PROJECT-XX123 — Описание потоковой обработки геоданных\nLINK_JIRA_TASK",
+          "present": true,
+          "important": true,
+          "start_line": 29,
+          "matched_heading": "JIRA"
+        },
+        {
+          "id": "sources",
+          "title": "Источники данных",
+          "content": "PROVIDER_GEO → Kafka (24 часа хранения):\n| Регион | Топик 3G | Топик 4G |\n| --- | --- | --- |\n| Центр | TOPIC_GEO3G_CENTRAL | TOPIC_GEO4G_CENTRAL |\n| Дальний Восток | TOPIC_GEO3G_EAST | TOPIC_GEO4G_EAST |\n| Северо-Запад | TOPIC_GEO3G_NW | TOPIC_GEO4G_NW |\n| Поволжье | TOPIC_GEO3G_VOLGA | TOPIC_GEO4G_VOLGA |\n| Сибирь | TOPIC_GEO3G_SIB | TOPIC_GEO4G_SIB |\n| Юг | TOPIC_GEO3G_SOUTH | TOPIC_GEO4G_SOUTH |\n| Урал | TOPIC_GEO3G_URAL | TOPIC_GEO4G_URAL |",
+          "present": true,
+          "important": true,
+          "start_line": 37,
+          "matched_heading": "Источники и приемники данных"
+        },
+        {
+          "id": "enrichment",
+          "title": "Источники обогащения данных",
+          "content": "",
+          "present": false,
+          "important": true,
+          "start_line": null,
+          "matched_heading": ""
+        },
+        {
+          "id": "sinks",
+          "title": "Приёмники данных",
+          "content": "| Слой | Таблица | Описание |\n| --- | --- | --- |\n| RAW | TABLE_GEO_RAW_3G | Данные по 3G (необработанные) |\n| RAW | TABLE_GEO_RAW_4G | Данные по 4G (необработанные) |\n| DDS | TABLE_GEO_DDS_DETAILED | Детальные события геолокации |\n| ADDS | TABLE_GEO_ADDS_AGG | Агрегированные события |\n| CDM | TABLE_GEO_CDM_INTERVALS | Геоинтервалы по абонентам |",
+          "present": true,
+          "important": true,
+          "start_line": 49,
+          "matched_heading": "Приемники:"
+        },
+        {
+          "id": "flow_schema",
+          "title": "Схема потоков данных",
+          "content": "PROVIDER_GEO → Kafka (топики по регионам) → Apache Flink → RAW → \nDDS → ADDS → CDM\n Мониторинг: LINK_DASHBOARD_GEO",
+          "present": true,
+          "important": true,
+          "start_line": 24,
+          "matched_heading": "Схема потоков данных"
+        },
+        {
+          "id": "algorithm",
+          "title": "Алгоритм обработки",
+          "content": "",
+          "present": false,
+          "important": true,
+          "start_line": null,
+          "matched_heading": ""
+        },
+        {
+          "id": "structure",
+          "title": "Структура данных",
+          "content": "Таблица: TABLE_GEO_RAW_3G\n| Поле | Тип данных | Описание |\n| --- | --- | --- |\n| FIELD_REGION | string | Регион |\n| FIELD_DATE_EVENT | date | Дата события |\n| FIELD_HOUR | int | Час события (партиция) |\n| FIELD_IMSI | string | IMSI |\n| FIELD_MSISDN | string | MSISDN |\n| FIELD_IMEI | string | IMEI |\n| FIELD_LAT | double | Широта геопозиции |\n| FIELD_LON | double | Долгота геопозиции |\n| FIELD_RADIUS | int | Радиус точности (метры) |\n| FIELD_CELL_START | long | ID начальной базовой станции |\n| FIELD_CELL_END | long | ID конечной БС |\n| FIELD_TIME_START | long | Время начала события |\n| FIELD_TIME_END | long | Время окончания события |\n| FIELD_LOC_ACCURACY | int | Точность локации (метры) |\n| FIELD_VENDOR | string | Вендор оборудования БС |\n\nТаблица: TABLE_GEO_RAW_4G\n| Поле | Тип данных | Описание |\n| --- | --- | --- |\n| FIELD_REGION | string | Регион |\n| FIELD_DATE_EVENT | date | Дата события |\n| FIELD_HOUR | int | Час события (партиция) |\n| FIELD_IMSI | string | IMSI |\n| FIELD_MSISDN | string | MSISDN |\n| FIELD_IMEI | string | IMEI |\n| FIELD_LAT | double | Широта геопозиции |\n| FIELD_LON | double | Долгота геопозиции |\n| FIELD_RADIUS | int | Радиус точности (метры) |\n| FIELD_CELL_START | long | ID начальной базовой станции |\n| FIELD_CELL_END | long | ID конечной БС |\n| FIELD_TIME_START | long | Время начала события |\n| FIELD_TIME_END | long | Время окончания события |\n| FIELD_LOC_ACCURACY | int | Точность локации (метры) |\n| FIELD_SERVICE_TYPE | int | Тип формата связи (услуга) |\n\nДополнительная информация\nДокументы:\n «Описание протоколов сигнальных сообщений в 3G/4G»\n «Форматы MDT и Measurement Trigger»\nАлгоритмы: обработка хэндоверов, геоинтервалов, работа с RNC/eNodeB.",
+          "present": true,
+          "important": true,
+          "start_line": 58,
+          "matched_heading": "Структура данных"
+        },
+        {
+          "id": "sample",
+          "title": "Пример данных",
+          "content": "",
+          "present": false,
+          "important": true,
+          "start_line": null,
+          "matched_heading": ""
+        },
+        {
+          "id": "ddl",
+          "title": "DDL",
+          "content": "",
+          "present": false,
+          "important": true,
+          "start_line": null,
+          "matched_heading": ""
+        },
+        {
+          "id": "faq",
+          "title": "FAQ",
+          "content": "",
+          "present": false,
+          "important": true,
+          "start_line": null,
+          "matched_heading": ""
+        },
+        {
+          "id": "changelog",
+          "title": "История изменений",
+          "content": "",
+          "present": false,
+          "important": true,
+          "start_line": null,
+          "matched_heading": ""
+        }
+      ],
+      "findings": [
+        {
+          "id": "f_dca12ff7",
+          "doc_id": "Тестовые данные для Хакатона-2-4",
+          "doc_type": "flow",
+          "reviewer_role": "developer",
+          "block": "Data Catalog",
+          "problem": "Отсутствует информация в важном блоке «Data Catalog».",
+          "guiding_questions": [
+            "Почему в ТЗ нет раздела «Data Catalog»?",
+            "Где взять недостающие данные (владелец источника / каталог / команда)?",
+            "Какой минимальный состав раздела нужен для разработки и тестирования?"
+          ],
+          "recommendation": "Добавь блок «Data Catalog» по эталонному шаблону документации и заполни конкретными значениями (без заглушек).",
+          "probability": 0.95,
+          "impact": 0.9,
+          "score": 0.855,
+          "doneness": "well_done",
+          "traffic_light": "red",
+          "status": "open",
+          "anchor": {
+            "page": null,
+            "excerpt": ""
+          },
+          "agent": "Agent Analyst",
+          "focus_area": "template",
+          "block_id": "data_catalog",
+          "kind": "missing",
+          "created_at": "2026-09-03T10:49:28Z",
+          "resolved_at": null
+        },
+        {
+          "id": "f_cf70b0f0",
+          "doc_id": "Тестовые данные для Хакатона-2-4",
+          "doc_type": "flow",
+          "reviewer_role": "developer",
+          "block": "Источники обогащения данных",
+          "problem": "Отсутствует информация в важном блоке «Источники обогащения данных».",
+          "guiding_questions": [
+            "Почему в ТЗ нет раздела «Источники обогащения данных»?",
+            "Где взять недостающие данные (владелец источника / каталог / команда)?",
+            "Какой минимальный состав раздела нужен для разработки и тестирования?"
+          ],
+          "recommendation": "Добавь блок «Источники обогащения данных» по эталонному шаблону документации и заполни конкретными значениями (без заглушек).",
+          "probability": 0.95,
+          "impact": 0.9,
+          "score": 0.855,
+          "doneness": "well_done",
+          "traffic_light": "red",
+          "status": "open",
+          "anchor": {
+            "page": null,
+            "excerpt": ""
+          },
+          "agent": "Agent Analyst",
+          "focus_area": "template",
+          "block_id": "enrichment",
+          "kind": "missing",
+          "created_at": "2026-09-03T10:49:28Z",
+          "resolved_at": null
+        },
+        {
+          "id": "f_5e6caebb",
+          "doc_id": "Тестовые данные для Хакатона-2-4",
+          "doc_type": "flow",
+          "reviewer_role": "developer",
+          "block": "Алгоритм обработки",
+          "problem": "Отсутствует информация в важном блоке «Алгоритм обработки».",
+          "guiding_questions": [
+            "Почему в ТЗ нет раздела «Алгоритм обработки»?",
+            "Где взять недостающие данные (владелец источника / каталог / команда)?",
+            "Какой минимальный состав раздела нужен для разработки и тестирования?"
+          ],
+          "recommendation": "Добавь блок «Алгоритм обработки» по эталонному шаблону документации и заполни конкретными значениями (без заглушек).",
+          "probability": 0.95,
+          "impact": 0.9,
+          "score": 0.855,
+          "doneness": "well_done",
+          "traffic_light": "red",
+          "status": "open",
+          "anchor": {
+            "page": null,
+            "excerpt": ""
+          },
+          "agent": "Agent Analyst",
+          "focus_area": "template",
+          "block_id": "algorithm",
+          "kind": "missing",
+          "created_at": "2026-09-03T10:49:28Z",
+          "resolved_at": null
+        },
+        {
+          "id": "f_f57415af",
+          "doc_id": "Тестовые данные для Хакатона-2-4",
+          "doc_type": "flow",
+          "reviewer_role": "developer",
+          "block": "Пример данных",
+          "problem": "Отсутствует информация в важном блоке «Пример данных».",
+          "guiding_questions": [
+            "Почему в ТЗ нет раздела «Пример данных»?",
+            "Где взять недостающие данные (владелец источника / каталог / команда)?",
+            "Какой минимальный состав раздела нужен для разработки и тестирования?"
+          ],
+          "recommendation": "Добавь блок «Пример данных» по эталонному шаблону документации и заполни конкретными значениями (без заглушек).",
+          "probability": 0.95,
+          "impact": 0.9,
+          "score": 0.855,
+          "doneness": "well_done",
+          "traffic_light": "red",
+          "status": "open",
+          "anchor": {
+            "page": null,
+            "excerpt": ""
+          },
+          "agent": "Agent Analyst",
+          "focus_area": "template",
+          "block_id": "sample",
+          "kind": "missing",
+          "created_at": "2026-09-03T10:49:28Z",
+          "resolved_at": null
+        },
+        {
+          "id": "f_72e32da2",
+          "doc_id": "Тестовые данные для Хакатона-2-4",
+          "doc_type": "flow",
+          "reviewer_role": "developer",
+          "block": "DDL",
+          "problem": "Отсутствует информация в важном блоке «DDL».",
+          "guiding_questions": [
+            "Почему в ТЗ нет раздела «DDL»?",
+            "Где взять недостающие данные (владелец источника / каталог / команда)?",
+            "Какой минимальный состав раздела нужен для разработки и тестирования?"
+          ],
+          "recommendation": "Добавь блок «DDL» по эталонному шаблону документации и заполни конкретными значениями (без заглушек).",
+          "probability": 0.95,
+          "impact": 0.9,
+          "score": 0.855,
+          "doneness": "well_done",
+          "traffic_light": "red",
+          "status": "open",
+          "anchor": {
+            "page": null,
+            "excerpt": ""
+          },
+          "agent": "Agent Analyst",
+          "focus_area": "template",
+          "block_id": "ddl",
+          "kind": "missing",
+          "created_at": "2026-09-03T10:49:28Z",
+          "resolved_at": null
+        },
+        {
+          "id": "f_c6354db7",
+          "doc_id": "Тестовые данные для Хакатона-2-4",
+          "doc_type": "flow",
+          "reviewer_role": "developer",
+          "block": "FAQ",
+          "problem": "Отсутствует информация в важном блоке «FAQ».",
+          "guiding_questions": [
+            "Почему в ТЗ нет раздела «FAQ»?",
+            "Где взять недостающие данные (владелец источника / каталог / команда)?",
+            "Какой минимальный состав раздела нужен для разработки и тестирования?"
+          ],
+          "recommendation": "Добавь блок «FAQ» по эталонному шаблону документации и заполни конкретными значениями (без заглушек).",
+          "probability": 0.95,
+          "impact": 0.9,
+          "score": 0.855,
+          "doneness": "well_done",
+          "traffic_light": "red",
+          "status": "open",
+          "anchor": {
+            "page": null,
+            "excerpt": ""
+          },
+          "agent": "Agent Analyst",
+          "focus_area": "template",
+          "block_id": "faq",
+          "kind": "missing",
+          "created_at": "2026-09-03T10:49:28Z",
+          "resolved_at": null
+        },
+        {
+          "id": "f_34848d0f",
+          "doc_id": "Тестовые данные для Хакатона-2-4",
+          "doc_type": "flow",
+          "reviewer_role": "developer",
+          "block": "История изменений",
+          "problem": "Отсутствует информация в важном блоке «История изменений».",
+          "guiding_questions": [
+            "Почему в ТЗ нет раздела «История изменений»?",
+            "Где взять недостающие данные (владелец источника / каталог / команда)?",
+            "Какой минимальный состав раздела нужен для разработки и тестирования?"
+          ],
+          "recommendation": "Добавь блок «История изменений» по эталонному шаблону документации и заполни конкретными значениями (без заглушек).",
+          "probability": 0.95,
+          "impact": 0.9,
+          "score": 0.855,
+          "doneness": "well_done",
+          "traffic_light": "red",
+          "status": "open",
+          "anchor": {
+            "page": null,
+            "excerpt": ""
+          },
+          "agent": "Agent Analyst",
+          "focus_area": "template",
+          "block_id": "changelog",
+          "kind": "missing",
+          "created_at": "2026-09-03T10:49:28Z",
+          "resolved_at": null
+        }
+      ]
+    },
+    {
+      "id": "Тестовые данные для Хакатона-5-6",
+      "filename": "Тестовые данные для Хакатона-5-6.pdf",
+      "label": "Система-источник (эталон)",
+      "doc_type": "source",
+      "text": "Общие сведения\r\nПлатформа обслуживает prepaid-абонентов. Файлы, поступающие с системы, \r\nсодержат телеком-события абонентов, заведённых на платформе. \r\nЗаказчики\r\nBigData\r\nСистемы-источники\r\nPI_System — система сбора CDR-файлов с сетевых элементов подвижной \r\nсвязи.\r\nКоманда\r\n USER_A — Product Owner\r\n USER_B — Data Analyst\r\n USER_C — Backend Developer\r\nИсточники и приёмники данных\r\nИсточники (CDR в формате CSV, сжатые gzip)\r\nДанные поступают в Kafka по топикам, соответствующим регионам:\r\n| Регион | Kafka-топик | SFTP/HDFS |\n| --- | --- | --- |\n| Центр | TOPIC_MSCP_CDR_CENTRAL | Папка |\n| Дальний Восток | TOPIC_MSCP_CDR_EAST | Папка |\n| Сибирь | TOPIC_MSCP_CDR_SIB | Папка |\n| Северо-Запад | TOPIC_MSCP_CDR_NW | Папка |\n| Поволжье | TOPIC_MSCP_CDR_VOLGA | Папка |\n| Юг | TOPIC_MSCP_CDR_SOUTH | Папка |\n\nПриёмники:\r\n TABLE_MSCP_RAW_KFK — необработанные CDR из Kafka (ORC)\r\n TABLE_MSCP_RAW_SFTP — необработанные CDR из SFTP (CSV)\r\nАлгоритм обработки потока\r\nШаг 1. Фильтрация данных\r\nУчитываются только события, произошедшие не ранее 7 дней назад и не \r\nпозже 2 часов вперёд от текущего времени (на стороне обработки).\r\nШаг 2. Преобразования на потоке\r\nОчистка числовых строк от лидирующих нулей:\r\nИз этих полей удаляются лидирующие нули до первого значимого символа.\r\nКоррекция часового пояса для временных меток:\r\n Для региона east: 7 часов\r\n Для регионов central, nw, volga, south: 3 часа\n\n Примечание: регион sib соответствует east.\r\nСтруктура данных\r\nТаблица: TABLE_MSCP_RAW_KFK\n| Поле | Тип данных | Описание |\n| --- | --- | --- |\n| FIELD_REGION | string | Название региона |\n| FIELD_BIZ_DATE | date | Бизнес-дата события |\n| FIELD_HOUR | int | Часовая партиция |\n| FIELD_IMSI | bigint | IMSI |\n| FIELD_CALLING_NUMBER | string | Номер вызывающего абонента |\n| FIELD_CALLED_NUMBER | string | Номер вызываемого абонента |\n| FIELD_CALL_START_TIME | timestamp | Время начала вызова |\n| FIELD_CALL_END_TIME | timestamp | Время окончания вызова |\n| FIELD_CALL_DURATION | int | Длительность вызова (сек) |\n| FIELD_IS_ROAMING | string | Признак роуминга (true/false) |\n| FIELD_OL_SERVICE_TYPE | tinyint | Тип сервиса |\n| FIELD_TIME_ZONE_SHIFT | string | Сдвиг часового пояса |\n| FIELD_TIMEZONE_CALC | int | Вычисленный сдвиг в минутах |\n| FIELD_BALANCE | double | Текущий баланс абонента |\n| FIELD_BALANCE_EXPIRE | timestamp | Срок истечения баланса |\n\nFAQ (обобщённо, без реальных ссылок)\r\nТип события (голос, SMS, данные):\r\nОпределяется по FIELD_OL_SERVICE_TYPE (см. выше). \r\nОпределение технологии связи (2G/3G/4G/5G):\r\nДля data-трафика — по полю radioAccessTechnology.\r\nДля голоса и SMS — косвенно: по наличию/отсутствию полей геолокации\r\n(например, CELL_ID, LAC).",
+      "blocks": [
+        {
+          "id": "general",
+          "title": "Общие сведения",
+          "content": "Платформа обслуживает prepaid-абонентов. Файлы, поступающие с системы, \nсодержат телеком-события абонентов, заведённых на платформе.",
+          "present": true,
+          "important": true,
+          "start_line": 1,
+          "matched_heading": "Общие сведения"
+        },
+        {
+          "id": "problem",
+          "title": "Решаемая проблема",
+          "content": "",
+          "present": false,
+          "important": true,
+          "start_line": null,
+          "matched_heading": ""
+        },
+        {
+          "id": "metrics",
+          "title": "Продуктовые метрики",
+          "content": "",
+          "present": false,
+          "important": false,
+          "start_line": null,
+          "matched_heading": ""
+        },
+        {
+          "id": "customers",
+          "title": "Заказчики",
+          "content": "BigData",
+          "present": true,
+          "important": true,
+          "start_line": 4,
+          "matched_heading": "Заказчики"
+        },
+        {
+          "id": "nfr",
+          "title": "Нефункциональные требования",
+          "content": "",
+          "present": false,
+          "important": true,
+          "start_line": null,
+          "matched_heading": ""
+        },
+        {
+          "id": "source_systems",
+          "title": "Системы-источники",
+          "content": "PI_System — система сбора CDR-файлов с сетевых элементов подвижной \nсвязи.",
+          "present": true,
+          "important": true,
+          "start_line": 6,
+          "matched_heading": "Системы-источники"
+        },
+        {
+          "id": "data_catalog",
+          "title": "Data Catalog",
+          "content": "",
+          "present": false,
+          "important": false,
+          "start_line": null,
+          "matched_heading": ""
+        },
+        {
+          "id": "gitlab",
+          "title": "Исходники проекта / GitLab",
+          "content": "",
+          "present": false,
+          "important": false,
+          "start_line": null,
+          "matched_heading": ""
+        },
+        {
+          "id": "team",
+          "title": "Команда",
+          "content": " USER_A — Product Owner\n USER_B — Data Analyst\n USER_C — Backend Developer",
+          "present": true,
+          "important": true,
+          "start_line": 9,
+          "matched_heading": "Команда"
+        },
+        {
+          "id": "jira",
+          "title": "JIRA",
+          "content": "",
+          "present": false,
+          "important": false,
+          "start_line": null,
+          "matched_heading": ""
+        },
+        {
+          "id": "sources",
+          "title": "Источники данных",
+          "content": "Источники (CDR в формате CSV, сжатые gzip)\nДанные поступают в Kafka по топикам, соответствующим регионам:\n| Регион | Kafka-топик | SFTP/HDFS |\n| --- | --- | --- |\n| Центр | TOPIC_MSCP_CDR_CENTRAL | Папка |\n| Дальний Восток | TOPIC_MSCP_CDR_EAST | Папка |\n| Сибирь | TOPIC_MSCP_CDR_SIB | Папка |\n| Северо-Запад | TOPIC_MSCP_CDR_NW | Папка |\n| Поволжье | TOPIC_MSCP_CDR_VOLGA | Папка |\n| Юг | TOPIC_MSCP_CDR_SOUTH | Папка |",
+          "present": true,
+          "important": true,
+          "start_line": 13,
+          "matched_heading": "Источники и приёмники данных"
+        },
+        {
+          "id": "enrichment",
+          "title": "Источники обогащения данных",
+          "content": "",
+          "present": false,
+          "important": false,
+          "start_line": null,
+          "matched_heading": ""
+        },
+        {
+          "id": "sinks",
+          "title": "Приёмники данных",
+          "content": " TABLE_MSCP_RAW_KFK — необработанные CDR из Kafka (ORC)\n TABLE_MSCP_RAW_SFTP — необработанные CDR из SFTP (CSV)",
+          "present": true,
+          "important": true,
+          "start_line": 25,
+          "matched_heading": "Приёмники:"
+        },
+        {
+          "id": "flow_schema",
+          "title": "Схема потоков данных",
+          "content": "",
+          "present": false,
+          "important": false,
+          "start_line": null,
+          "matched_heading": ""
+        },
+        {
+          "id": "algorithm",
+          "title": "Алгоритм обработки",
+          "content": "Шаг 1. Фильтрация данных\nУчитываются только события, произошедшие не ранее 7 дней назад и не \nпозже 2 часов вперёд от текущего времени (на стороне обработки).\nШаг 2. Преобразования на потоке\nОчистка числовых строк от лидирующих нулей:\nИз этих полей удаляются лидирующие нули до первого значимого символа.\nКоррекция часового пояса для временных меток:\n Для региона east: 7 часов\n Для регионов central, nw, volga, south: 3 часа\n\n Примечание: регион sib соответствует east.",
+          "present": true,
+          "important": true,
+          "start_line": 28,
+          "matched_heading": "Алгоритм обработки потока"
+        },
+        {
+          "id": "structure",
+          "title": "Структура данных",
+          "content": "Таблица: TABLE_MSCP_RAW_KFK\n| Поле | Тип данных | Описание |\n| --- | --- | --- |\n| FIELD_REGION | string | Название региона |\n| FIELD_BIZ_DATE | date | Бизнес-дата события |\n| FIELD_HOUR | int | Часовая партиция |\n| FIELD_IMSI | bigint | IMSI |\n| FIELD_CALLING_NUMBER | string | Номер вызывающего абонента |\n| FIELD_CALLED_NUMBER | string | Номер вызываемого абонента |\n| FIELD_CALL_START_TIME | timestamp | Время начала вызова |\n| FIELD_CALL_END_TIME | timestamp | Время окончания вызова |\n| FIELD_CALL_DURATION | int | Длительность вызова (сек) |\n| FIELD_IS_ROAMING | string | Признак роуминга (true/false) |\n| FIELD_OL_SERVICE_TYPE | tinyint | Тип сервиса |\n| FIELD_TIME_ZONE_SHIFT | string | Сдвиг часового пояса |\n| FIELD_TIMEZONE_CALC | int | Вычисленный сдвиг в минутах |\n| FIELD_BALANCE | double | Текущий баланс абонента |\n| FIELD_BALANCE_EXPIRE | timestamp | Срок истечения баланса |",
+          "present": true,
+          "important": true,
+          "start_line": 40,
+          "matched_heading": "Структура данных"
+        },
+        {
+          "id": "sample",
+          "title": "Пример данных",
+          "content": "",
+          "present": false,
+          "important": true,
+          "start_line": null,
+          "matched_heading": ""
+        },
+        {
+          "id": "ddl",
+          "title": "DDL",
+          "content": "",
+          "present": false,
+          "important": false,
+          "start_line": null,
+          "matched_heading": ""
+        },
+        {
+          "id": "faq",
+          "title": "FAQ",
+          "content": "Тип события (голос, SMS, данные):\nОпределяется по FIELD_OL_SERVICE_TYPE (см. выше). \nОпределение технологии связи (2G/3G/4G/5G):\nДля data-трафика — по полю radioAccessTechnology.\nДля голоса и SMS — косвенно: по наличию/отсутствию полей геолокации\n(например, CELL_ID, LAC).",
+          "present": true,
+          "important": true,
+          "start_line": 60,
+          "matched_heading": "FAQ (обобщённо, без реальных ссылок)"
+        },
+        {
+          "id": "changelog",
+          "title": "История изменений",
+          "content": "",
+          "present": false,
+          "important": true,
+          "start_line": null,
+          "matched_heading": ""
+        }
+      ],
+      "findings": [
+        {
+          "id": "f_e3ea0bfd",
+          "doc_id": "Тестовые данные для Хакатона-5-6",
+          "doc_type": "source",
+          "reviewer_role": "developer",
+          "block": "Решаемая проблема",
+          "problem": "Отсутствует информация в важном блоке «Решаемая проблема».",
+          "guiding_questions": [
+            "Почему в ТЗ нет раздела «Решаемая проблема»?",
+            "Где взять недостающие данные (владелец источника / каталог / команда)?",
+            "Какой минимальный состав раздела нужен для разработки и тестирования?"
+          ],
+          "recommendation": "Добавь блок «Решаемая проблема» по эталонному шаблону документации и заполни конкретными значениями (без заглушек).",
+          "probability": 0.95,
+          "impact": 0.9,
+          "score": 0.855,
+          "doneness": "well_done",
+          "traffic_light": "red",
+          "status": "open",
+          "anchor": {
+            "page": null,
+            "excerpt": ""
+          },
+          "agent": "Agent Analyst",
+          "focus_area": "template",
+          "block_id": "problem",
+          "kind": "missing",
+          "created_at": "2026-09-03T10:49:28Z",
+          "resolved_at": null
+        },
+        {
+          "id": "f_3795af5e",
+          "doc_id": "Тестовые данные для Хакатона-5-6",
+          "doc_type": "source",
+          "reviewer_role": "developer",
+          "block": "Нефункциональные требования",
+          "problem": "Отсутствует информация в важном блоке «Нефункциональные требования».",
+          "guiding_questions": [
+            "Почему в ТЗ нет раздела «Нефункциональные требования»?",
+            "Где взять недостающие данные (владелец источника / каталог / команда)?",
+            "Какой минимальный состав раздела нужен для разработки и тестирования?"
+          ],
+          "recommendation": "Добавь блок «Нефункциональные требования» по эталонному шаблону документации и заполни конкретными значениями (без заглушек).",
+          "probability": 0.95,
+          "impact": 0.9,
+          "score": 0.855,
+          "doneness": "well_done",
+          "traffic_light": "red",
+          "status": "open",
+          "anchor": {
+            "page": null,
+            "excerpt": ""
+          },
+          "agent": "Agent Analyst",
+          "focus_area": "template",
+          "block_id": "nfr",
+          "kind": "missing",
+          "created_at": "2026-09-03T10:49:28Z",
+          "resolved_at": null
+        },
+        {
+          "id": "f_68939c3b",
+          "doc_id": "Тестовые данные для Хакатона-5-6",
+          "doc_type": "source",
+          "reviewer_role": "developer",
+          "block": "Пример данных",
+          "problem": "Отсутствует информация в важном блоке «Пример данных».",
+          "guiding_questions": [
+            "Почему в ТЗ нет раздела «Пример данных»?",
+            "Где взять недостающие данные (владелец источника / каталог / команда)?",
+            "Какой минимальный состав раздела нужен для разработки и тестирования?"
+          ],
+          "recommendation": "Добавь блок «Пример данных» по эталонному шаблону документации и заполни конкретными значениями (без заглушек).",
+          "probability": 0.95,
+          "impact": 0.9,
+          "score": 0.855,
+          "doneness": "well_done",
+          "traffic_light": "red",
+          "status": "open",
+          "anchor": {
+            "page": null,
+            "excerpt": ""
+          },
+          "agent": "Agent Analyst",
+          "focus_area": "template",
+          "block_id": "sample",
+          "kind": "missing",
+          "created_at": "2026-09-03T10:49:28Z",
+          "resolved_at": null
+        },
+        {
+          "id": "f_d124fc94",
+          "doc_id": "Тестовые данные для Хакатона-5-6",
+          "doc_type": "source",
+          "reviewer_role": "developer",
+          "block": "История изменений",
+          "problem": "Отсутствует информация в важном блоке «История изменений».",
+          "guiding_questions": [
+            "Почему в ТЗ нет раздела «История изменений»?",
+            "Где взять недостающие данные (владелец источника / каталог / команда)?",
+            "Какой минимальный состав раздела нужен для разработки и тестирования?"
+          ],
+          "recommendation": "Добавь блок «История изменений» по эталонному шаблону документации и заполни конкретными значениями (без заглушек).",
+          "probability": 0.95,
+          "impact": 0.9,
+          "score": 0.855,
+          "doneness": "well_done",
+          "traffic_light": "red",
+          "status": "open",
+          "anchor": {
+            "page": null,
+            "excerpt": ""
+          },
+          "agent": "Agent Analyst",
+          "focus_area": "template",
+          "block_id": "changelog",
+          "kind": "missing",
+          "created_at": "2026-09-03T10:49:28Z",
+          "resolved_at": null
+        }
+      ]
+    },
+    {
+      "id": "Тестовые данные для Хакатона-7-9",
+      "filename": "Тестовые данные для Хакатона-7-9.pdf",
+      "label": "Витрина-агрегат (эталон)",
+      "doc_type": "aggregate_mart",
+      "text": "Общие сведения\r\nАгрегат по устройствам абонентов: ежемесячная сводка по вендорам \r\nустройств и регионам пользователей.\r\nБизнес-требования\r\nНазвание таблицы: TABLE_AGG_DEVICES\r\nКластер: CLUSTER\r\nСхема: SCHEMA_CDM_NETS\r\nСистемы-источники\r\nIUM — IN-платформа (сбор событий интернет-трафика, звонков и SMS)\r\nСпособ загрузки\r\nИнкремент\r\nРегламент\r\nЕжемесячно (1 раз в месяц)\r\nГлубина данных\r\nС 01.05.2023\r\nОбязательно загрузить исторические данные.\r\nКоманда\r\n PO: USER_A\r\n TechPM: USER_B\r\n Аналитик: USER_C\r\n Разработчик: USER_D\r\n QA: USER_E\r\nЗаказчики\r\nMVNO Unit X\r\n1. Источники данных\n| Схема | Таблица | Описание |\n| --- | --- | --- |\n| SCHEMA_RAW | TABLE_IUM_RAW_PS | Необработанные данные по интернет-трафику (GPRS) |\n| SCHEMA_RAW | TABLE_IUM_RAW_MS | Необработанные данные по звонкам и SMS |\n| SCHEMA_ADDS | TABLE_BS_REF | Справочник базовых станций |\n| SCHEMA_DIC | TABLE_REGION_REF | Справочник регионов |\n| SCHEMA_DIC | TABLE_DEVICE_REF | Справочник устройств |\n\n2. Структура данных CDM\nТаблица: TABLE_AGG_DEVICES\n| № | Поле | Тип данных | Описание | Комментарий |\n| --- | --- | --- | --- | --- |\n| 1 | FIELD_REGION_NAME | string | Название региона | Последнее значение region_name за месяц; сначала по (lac, cell), затем fallback |\n| 2 | FIELD_VENDOR_NAME | string | Наименование вендора устройства | substring(imei, 1, 8) = tac → vendor_name |\n| 3 | FIELD_USERS_CNT | bigint | Уникальное количество абонентов (IMSI) | count(distinct FIELD_IMSI) |\n| 4 | FIELD_PROC_TS | timestamp | Дата/время создания агрегата | Метка обработки DAG |\n| 5 | FIELD_BIZ_DATE | date | Бизнес-дата (1-е число месяца) | Пример: 01.07.2023–31.07.2023 → 2023-07-01 |\n\nАлгоритм расчёта\r\nШаг 1. Выбор пользователей\r\nБерутся все уникальные FIELD_IMSI из:\r\n TABLE_IUM_RAW_MS (SMS + звонки)\r\n TABLE_IUM_RAW_PS (GPRS) за период: FIELD_BIZ_DATE (месяц).\r\nШаг 2. Определение вендора\r\nДля каждого FIELD_IMSI берётся FIELD_IMEI (последний по времени за \r\nмесяц).\r\nИзвлекается tac = substring(imei, 1, 8).\r\nПрисоединяется FIELD_VENDOR_NAME по tac из TABLE_DEVICE_REF.\r\nШаг 3. Определение региона\r\nДля каждого FIELD_IMSI за месяц:\r\nНаходится последняя запись с \r\nненулевыми FIELD_LAC и FIELD_CELL_ID (по FIELD_TIME_STAMP).\r\nСопоставление с TABLE_BS_REF: приоритет: (lac, cell_id)\r\n по lac (последняя актуальная запись за месяц)\r\n по cell_id только для 4G (FIELD_CELL_GEN = 4)\n\n если lac = 0 → джойн только по cell_id (4G)\r\n если cell = 0 → джойн только по lac\r\nУбираются дубли: на выходе — одна region_code на абонента.\r\nПрисоединение FIELD_REGION_NAME из TABLE_REGION_REF.\r\nШаг 4. Агрегация\r\nГруппировка по:\r\n FIELD_REGION_NAME\r\n FIELD_VENDOR_NAME\r\n FIELD_USERS_CNT = count(distinct FIELD_IMSI)\r\nШаг 5. Запись в CDM\r\nТребования к агрегату\n| Требование | Значение |\n| --- | --- |\n| Регламент расчёта | Ежемесячно |\n| Период агрегации | Календарный месяц |\n| Глубина данных | Исторические данные — с 01.05.2023 |\n| Региональная агрегация | Да (по региону) |\n| Часовой пояс | UTC |\n| Поле партиционирования | FIELD_BIZ_DATE |\n| Обновление | Только полная перезагрузка месяца (без upsert) |\n",
+      "blocks": [
+        {
+          "id": "general",
+          "title": "Общие сведения",
+          "content": "Агрегат по устройствам абонентов: ежемесячная сводка по вендорам \nустройств и регионам пользователей.",
+          "present": true,
+          "important": true,
+          "start_line": 1,
+          "matched_heading": "Общие сведения"
+        },
+        {
+          "id": "problem",
+          "title": "Решаемая проблема",
+          "content": "",
+          "present": false,
+          "important": false,
+          "start_line": null,
+          "matched_heading": ""
+        },
+        {
+          "id": "metrics",
+          "title": "Продуктовые метрики",
+          "content": "",
+          "present": false,
+          "important": false,
+          "start_line": null,
+          "matched_heading": ""
+        },
+        {
+          "id": "customers",
+          "title": "Заказчики",
+          "content": "MVNO Unit X",
+          "present": true,
+          "important": true,
+          "start_line": 23,
+          "matched_heading": "Заказчики"
+        },
+        {
+          "id": "nfr",
+          "title": "Нефункциональные требования",
+          "content": "Название таблицы: TABLE_AGG_DEVICES\nКластер: CLUSTER\nСхема: SCHEMA_CDM_NETS\n\nСпособ загрузки\nИнкремент\nРегламент\nЕжемесячно (1 раз в месяц)\nГлубина данных\nС 01.05.2023\nОбязательно загрузить исторические данные.\n\nТребования к агрегату\n| Требование | Значение |\n| --- | --- |\n| Регламент расчёта | Ежемесячно |\n| Период агрегации | Календарный месяц |\n| Глубина данных | Исторические данные — с 01.05.2023 |\n| Региональная агрегация | Да (по региону) |\n| Часовой пояс | UTC |\n| Поле партиционирования | FIELD_BIZ_DATE |\n| Обновление | Только полная перезагрузка месяца (без upsert) |",
+          "present": true,
+          "important": true,
+          "start_line": 4,
+          "matched_heading": "Бизнес-требования | Способ загрузки | Требования к агрегату"
+        },
+        {
+          "id": "source_systems",
+          "title": "Системы-источники",
+          "content": "IUM — IN-платформа (сбор событий интернет-трафика, звонков и SMS)",
+          "present": true,
+          "important": true,
+          "start_line": 8,
+          "matched_heading": "Системы-источники"
+        },
+        {
+          "id": "data_catalog",
+          "title": "Data Catalog",
+          "content": "",
+          "present": false,
+          "important": true,
+          "start_line": null,
+          "matched_heading": ""
+        },
+        {
+          "id": "gitlab",
+          "title": "Исходники проекта / GitLab",
+          "content": "",
+          "present": false,
+          "important": false,
+          "start_line": null,
+          "matched_heading": ""
+        },
+        {
+          "id": "team",
+          "title": "Команда",
+          "content": " PO: USER_A\n TechPM: USER_B\n Аналитик: USER_C\n Разработчик: USER_D\n QA: USER_E",
+          "present": true,
+          "important": true,
+          "start_line": 17,
+          "matched_heading": "Команда"
+        },
+        {
+          "id": "jira",
+          "title": "JIRA",
+          "content": "",
+          "present": false,
+          "important": true,
+          "start_line": null,
+          "matched_heading": ""
+        },
+        {
+          "id": "sources",
+          "title": "Источники данных",
+          "content": "| Схема | Таблица | Описание |\n| --- | --- | --- |\n| SCHEMA_RAW | TABLE_IUM_RAW_PS | Необработанные данные по интернет-трафику (GPRS) |\n| SCHEMA_RAW | TABLE_IUM_RAW_MS | Необработанные данные по звонкам и SMS |\n| SCHEMA_ADDS | TABLE_BS_REF | Справочник базовых станций |\n| SCHEMA_DIC | TABLE_REGION_REF | Справочник регионов |\n| SCHEMA_DIC | TABLE_DEVICE_REF | Справочник устройств |",
+          "present": true,
+          "important": true,
+          "start_line": 25,
+          "matched_heading": "1. Источники данных"
+        },
+        {
+          "id": "enrichment",
+          "title": "Источники обогащения данных",
+          "content": "",
+          "present": false,
+          "important": false,
+          "start_line": null,
+          "matched_heading": ""
+        },
+        {
+          "id": "sinks",
+          "title": "Приёмники данных",
+          "content": "",
+          "present": false,
+          "important": false,
+          "start_line": null,
+          "matched_heading": ""
+        },
+        {
+          "id": "flow_schema",
+          "title": "Схема потоков данных",
+          "content": "",
+          "present": false,
+          "important": false,
+          "start_line": null,
+          "matched_heading": ""
+        },
+        {
+          "id": "algorithm",
+          "title": "Алгоритм обработки",
+          "content": "Шаг 1. Выбор пользователей\nБерутся все уникальные FIELD_IMSI из:\n TABLE_IUM_RAW_MS (SMS + звонки)\n TABLE_IUM_RAW_PS (GPRS) за период: FIELD_BIZ_DATE (месяц).\nШаг 2. Определение вендора\nДля каждого FIELD_IMSI берётся FIELD_IMEI (последний по времени за \nмесяц).\nИзвлекается tac = substring(imei, 1, 8).\nПрисоединяется FIELD_VENDOR_NAME по tac из TABLE_DEVICE_REF.\nШаг 3. Определение региона\nДля каждого FIELD_IMSI за месяц:\nНаходится последняя запись с \nненулевыми FIELD_LAC и FIELD_CELL_ID (по FIELD_TIME_STAMP).\nСопоставление с TABLE_BS_REF: приоритет: (lac, cell_id)\n по lac (последняя актуальная запись за месяц)\n по cell_id только для 4G (FIELD_CELL_GEN = 4)\n\n если lac = 0 → джойн только по cell_id (4G)\n если cell = 0 → джойн только по lac\nУбираются дубли: на выходе — одна region_code на абонента.\nПрисоединение FIELD_REGION_NAME из TABLE_REGION_REF.\nШаг 4. Агрегация\nГруппировка по:\n FIELD_REGION_NAME\n FIELD_VENDOR_NAME\n FIELD_USERS_CNT = count(distinct FIELD_IMSI)\nШаг 5. Запись в CDM",
+          "present": true,
+          "important": true,
+          "start_line": 44,
+          "matched_heading": "Алгоритм расчёта"
+        },
+        {
+          "id": "structure",
+          "title": "Структура данных",
+          "content": "Таблица: TABLE_AGG_DEVICES\n| № | Поле | Тип данных | Описание | Комментарий |\n| --- | --- | --- | --- | --- |\n| 1 | FIELD_REGION_NAME | string | Название региона | Последнее значение region_name за месяц; сначала по (lac, cell), затем fallback |\n| 2 | FIELD_VENDOR_NAME | string | Наименование вендора устройства | substring(imei, 1, 8) = tac → vendor_name |\n| 3 | FIELD_USERS_CNT | bigint | Уникальное количество абонентов (IMSI) | count(distinct FIELD_IMSI) |\n| 4 | FIELD_PROC_TS | timestamp | Дата/время создания агрегата | Метка обработки DAG |\n| 5 | FIELD_BIZ_DATE | date | Бизнес-дата (1-е число месяца) | Пример: 01.07.2023–31.07.2023 → 2023-07-01 |",
+          "present": true,
+          "important": true,
+          "start_line": 34,
+          "matched_heading": "2. Структура данных CDM"
+        },
+        {
+          "id": "sample",
+          "title": "Пример данных",
+          "content": "",
+          "present": false,
+          "important": true,
+          "start_line": null,
+          "matched_heading": ""
+        },
+        {
+          "id": "ddl",
+          "title": "DDL",
+          "content": "",
+          "present": false,
+          "important": true,
+          "start_line": null,
+          "matched_heading": ""
+        },
+        {
+          "id": "faq",
+          "title": "FAQ",
+          "content": "",
+          "present": false,
+          "important": false,
+          "start_line": null,
+          "matched_heading": ""
+        },
+        {
+          "id": "changelog",
+          "title": "История изменений",
+          "content": "",
+          "present": false,
+          "important": true,
+          "start_line": null,
+          "matched_heading": ""
+        }
+      ],
+      "findings": [
+        {
+          "id": "f_486336e5",
+          "doc_id": "Тестовые данные для Хакатона-7-9",
+          "doc_type": "aggregate_mart",
+          "reviewer_role": "developer",
+          "block": "Data Catalog",
+          "problem": "Отсутствует информация в важном блоке «Data Catalog».",
+          "guiding_questions": [
+            "Почему в ТЗ нет раздела «Data Catalog»?",
+            "Где взять недостающие данные (владелец источника / каталог / команда)?",
+            "Какой минимальный состав раздела нужен для разработки и тестирования?"
+          ],
+          "recommendation": "Добавь блок «Data Catalog» по эталонному шаблону документации и заполни конкретными значениями (без заглушек).",
+          "probability": 0.95,
+          "impact": 0.9,
+          "score": 0.855,
+          "doneness": "well_done",
+          "traffic_light": "red",
+          "status": "open",
+          "anchor": {
+            "page": null,
+            "excerpt": ""
+          },
+          "agent": "Agent Analyst",
+          "focus_area": "template",
+          "block_id": "data_catalog",
+          "kind": "missing",
+          "created_at": "2026-09-03T10:49:28Z",
+          "resolved_at": null
+        },
+        {
+          "id": "f_898ae742",
+          "doc_id": "Тестовые данные для Хакатона-7-9",
+          "doc_type": "aggregate_mart",
+          "reviewer_role": "developer",
+          "block": "JIRA",
+          "problem": "Отсутствует информация в важном блоке «JIRA».",
+          "guiding_questions": [
+            "Почему в ТЗ нет раздела «JIRA»?",
+            "Где взять недостающие данные (владелец источника / каталог / команда)?",
+            "Какой минимальный состав раздела нужен для разработки и тестирования?"
+          ],
+          "recommendation": "Добавь блок «JIRA» по эталонному шаблону документации и заполни конкретными значениями (без заглушек).",
+          "probability": 0.95,
+          "impact": 0.9,
+          "score": 0.855,
+          "doneness": "well_done",
+          "traffic_light": "red",
+          "status": "open",
+          "anchor": {
+            "page": null,
+            "excerpt": ""
+          },
+          "agent": "Agent Analyst",
+          "focus_area": "template",
+          "block_id": "jira",
+          "kind": "missing",
+          "created_at": "2026-09-03T10:49:28Z",
+          "resolved_at": null
+        },
+        {
+          "id": "f_813ed15f",
+          "doc_id": "Тестовые данные для Хакатона-7-9",
+          "doc_type": "aggregate_mart",
+          "reviewer_role": "developer",
+          "block": "Пример данных",
+          "problem": "Отсутствует информация в важном блоке «Пример данных».",
+          "guiding_questions": [
+            "Почему в ТЗ нет раздела «Пример данных»?",
+            "Где взять недостающие данные (владелец источника / каталог / команда)?",
+            "Какой минимальный состав раздела нужен для разработки и тестирования?"
+          ],
+          "recommendation": "Добавь блок «Пример данных» по эталонному шаблону документации и заполни конкретными значениями (без заглушек).",
+          "probability": 0.95,
+          "impact": 0.9,
+          "score": 0.855,
+          "doneness": "well_done",
+          "traffic_light": "red",
+          "status": "open",
+          "anchor": {
+            "page": null,
+            "excerpt": ""
+          },
+          "agent": "Agent Analyst",
+          "focus_area": "template",
+          "block_id": "sample",
+          "kind": "missing",
+          "created_at": "2026-09-03T10:49:28Z",
+          "resolved_at": null
+        },
+        {
+          "id": "f_063cb14a",
+          "doc_id": "Тестовые данные для Хакатона-7-9",
+          "doc_type": "aggregate_mart",
+          "reviewer_role": "developer",
+          "block": "DDL",
+          "problem": "Отсутствует информация в важном блоке «DDL».",
+          "guiding_questions": [
+            "Почему в ТЗ нет раздела «DDL»?",
+            "Где взять недостающие данные (владелец источника / каталог / команда)?",
+            "Какой минимальный состав раздела нужен для разработки и тестирования?"
+          ],
+          "recommendation": "Добавь блок «DDL» по эталонному шаблону документации и заполни конкретными значениями (без заглушек).",
+          "probability": 0.95,
+          "impact": 0.9,
+          "score": 0.855,
+          "doneness": "well_done",
+          "traffic_light": "red",
+          "status": "open",
+          "anchor": {
+            "page": null,
+            "excerpt": ""
+          },
+          "agent": "Agent Analyst",
+          "focus_area": "template",
+          "block_id": "ddl",
+          "kind": "missing",
+          "created_at": "2026-09-03T10:49:28Z",
+          "resolved_at": null
+        },
+        {
+          "id": "f_e6641896",
+          "doc_id": "Тестовые данные для Хакатона-7-9",
+          "doc_type": "aggregate_mart",
+          "reviewer_role": "developer",
+          "block": "История изменений",
+          "problem": "Отсутствует информация в важном блоке «История изменений».",
+          "guiding_questions": [
+            "Почему в ТЗ нет раздела «История изменений»?",
+            "Где взять недостающие данные (владелец источника / каталог / команда)?",
+            "Какой минимальный состав раздела нужен для разработки и тестирования?"
+          ],
+          "recommendation": "Добавь блок «История изменений» по эталонному шаблону документации и заполни конкретными значениями (без заглушек).",
+          "probability": 0.95,
+          "impact": 0.9,
+          "score": 0.855,
+          "doneness": "well_done",
+          "traffic_light": "red",
+          "status": "open",
+          "anchor": {
+            "page": null,
+            "excerpt": ""
+          },
+          "agent": "Agent Analyst",
+          "focus_area": "template",
+          "block_id": "changelog",
+          "kind": "missing",
+          "created_at": "2026-09-03T10:49:28Z",
+          "resolved_at": null
+        },
+        {
+          "id": "f_62536eeb",
+          "doc_id": "Тестовые данные для Хакатона-7-9",
+          "doc_type": "aggregate_mart",
+          "reviewer_role": "developer",
+          "block": "Нефункциональные требования",
+          "problem": "Имя кластера указано как заглушка «CLUSTER» — нельзя однозначно найти объект.",
+          "guiding_questions": [
+            "Как называется реальный CDM/аналитический кластер?",
+            "Есть ли ссылка на Data Catalog / inventory?"
+          ],
+          "recommendation": "Замени «CLUSTER» на фактическое имя, например «CLUSTER_CDM_NETS_PROD».",
+          "probability": 0.95,
+          "impact": 0.92,
+          "score": 0.874,
+          "doneness": "well_done",
+          "traffic_light": "red",
+          "status": "open",
+          "anchor": {
+            "page": null,
+            "excerpt": "…ие таблицы: TABLE_AGG_DEVICES Кластер: CLUSTER Схема: SCHEMA_CDM_NETS  Способ загрузки Инкремент Регламент Ежемесячно (1 раз в месяц) Глуб…"
+          },
+          "agent": "Agent Developer",
+          "focus_area": "sources_kafka",
+          "block_id": "nfr",
+          "kind": "content",
+          "created_at": "2026-09-03T10:49:28Z",
+          "resolved_at": null
+        },
+        {
+          "id": "f_3641aa84",
+          "doc_id": "Тестовые данные для Хакатона-7-9",
+          "doc_type": "aggregate_mart",
+          "reviewer_role": "developer",
+          "block": "Алгоритм обработки",
+          "problem": "Несостыковка: описан сложный fallback, но нет ветки «значение не найдено».",
+          "guiding_questions": [
+            "Что писать в FIELD_REGION_NAME, если region_code не найден?",
+            "Что делать, если TAC отсутствует в справочнике?"
+          ],
+          "recommendation": "Добавь else-branch: «если region/vendor не определён → Unknown / исключить из агрегата».",
+          "probability": 0.87,
+          "impact": 0.9,
+          "score": 0.783,
+          "doneness": "well_done",
+          "traffic_light": "red",
+          "status": "open",
+          "anchor": {
+            "page": null,
+            "excerpt": "…ля 4G (FIELD_CELL_GEN = 4)   если lac = 0 → джойн только по cell_id (4G)  если cell = 0 → джойн только по lac Убираются дубли: на выходе — о…"
+          },
+          "agent": "Agent QA",
+          "focus_area": "fields_logic",
+          "block_id": "algorithm",
+          "kind": "content",
+          "created_at": "2026-09-03T10:49:28Z",
+          "resolved_at": null
+        },
+        {
+          "id": "f_84727864",
+          "doc_id": "Тестовые данные для Хакатона-7-9",
+          "doc_type": "aggregate_mart",
+          "reviewer_role": "developer",
+          "block": "Нефункциональные требования",
+          "problem": "Указана полная перезагрузка месяца, но нет политики late-data / пересчёта прошлого периода.",
+          "guiding_questions": [
+            "Пересчитывается ли прошлый месяц при опоздавших данных?",
+            "Сколько дней после закрытия месяца допускается refresh?"
+          ],
+          "recommendation": "Добавь правило: «T+N дней возможен полный refresh месяца; далее — только по CR».",
+          "probability": 0.74,
+          "impact": 0.8,
+          "score": 0.592,
+          "doneness": "medium",
+          "traffic_light": "orange",
+          "status": "open",
+          "anchor": {
+            "page": null,
+            "excerpt": "…| Обновление | Только полная перезагрузка месяца (без upsert) |"
+          },
+          "agent": "Agent QA",
+          "focus_area": "refresh_volume",
+          "block_id": "nfr",
+          "kind": "content",
+          "created_at": "2026-09-03T10:49:28Z",
+          "resolved_at": null
+        },
+        {
+          "id": "f_0bfb52df",
+          "doc_id": "Тестовые данные для Хакатона-7-9",
+          "doc_type": "aggregate_mart",
+          "reviewer_role": "developer",
+          "block": "Алгоритм обработки",
+          "problem": "В алгоритме не зафиксированы критерии фильтрации кроме выбора периода.",
+          "guiding_questions": [
+            "Берутся ли только активные абоненты?",
+            "Нужно ли исключать тестовые IMSI?",
+            "Как стыкуется окно месяца с FIELD_BIZ_DATE?"
+          ],
+          "recommendation": "Допиши в шаг 1 явные фильтры периода, исключений и правило MS/PS.",
+          "probability": 0.72,
+          "impact": 0.8,
+          "score": 0.576,
+          "doneness": "medium",
+          "traffic_light": "orange",
+          "status": "open",
+          "anchor": {
+            "page": null,
+            "excerpt": "Шаг 1. Выбор пользователей Берутся все уникальные FIELD_IMSI из:  TABLE_IUM_RAW_MS (SMS + звонки)  TABL…"
+          },
+          "agent": "Agent QA",
+          "focus_area": "filtering",
+          "block_id": "algorithm",
+          "kind": "content",
+          "created_at": "2026-09-03T10:49:28Z",
+          "resolved_at": null
+        },
+        {
+          "id": "f_12e15237",
+          "doc_id": "Тестовые данные для Хакатона-7-9",
+          "doc_type": "aggregate_mart",
+          "reviewer_role": "developer",
+          "block": "Источники данных",
+          "problem": "Не ясно, есть ли Kafka на пути к агрегату: таблицы описаны, транспорт не зафиксирован.",
+          "guiding_questions": [
+            "Агрегат читает только batch-таблицы или ещё Kafka?",
+            "Если Kafka нет — где это явно сказано?"
+          ],
+          "recommendation": "Либо добавь топики/кластер, либо явную фразу: «Kafka не используется, источник — таблицы SCHEMA_RAW.*».",
+          "probability": 0.8,
+          "impact": 0.7,
+          "score": 0.56,
+          "doneness": "medium",
+          "traffic_light": "orange",
+          "status": "open",
+          "anchor": {
+            "page": null,
+            "excerpt": "…| --- | --- | | SCHEMA_RAW | TABLE_IUM_RAW_PS | Необработанные данные по интернет-трафику (GPRS) | | SCHEMA_RAW | TABLE_IUM_RAW_MS | Не…"
+          },
+          "agent": "Agent Developer",
+          "focus_area": "sources_kafka",
+          "block_id": "sources",
+          "kind": "content",
+          "created_at": "2026-09-03T10:49:28Z",
+          "resolved_at": null
+        },
+        {
+          "id": "f_138d769b",
+          "doc_id": "Тестовые данные для Хакатона-7-9",
+          "doc_type": "aggregate_mart",
+          "reviewer_role": "developer",
+          "block": "Нефункциональные требования",
+          "problem": "Нет оценки объёма данных и/или допустимой задержки готовности.",
+          "guiding_questions": [
+            "Какой ожидаемый объём за период?",
+            "Какая SLA-задержка готовности витрины?"
+          ],
+          "recommendation": "Добавь NFR: объём (строк/ГБ) и SLA готовности после окончания периода.",
+          "probability": 0.65,
+          "impact": 0.7,
+          "score": 0.455,
+          "doneness": "medium",
+          "traffic_light": "orange",
+          "status": "open",
+          "anchor": {
+            "page": null,
+            "excerpt": "…TS  Способ загрузки Инкремент Регламент Ежемесячно (1 раз в месяц) Глубина данных С 01.05.2023 Обязательно загрузить исторические данные.…"
+          },
+          "agent": "Agent Analyst",
+          "focus_area": "refresh_volume",
+          "block_id": "nfr",
+          "kind": "content",
+          "created_at": "2026-09-03T10:49:28Z",
+          "resolved_at": null
+        },
+        {
+          "id": "f_b0049945",
+          "doc_id": "Тестовые данные для Хакатона-7-9",
+          "doc_type": "aggregate_mart",
+          "reviewer_role": "developer",
+          "block": "Структура данных",
+          "problem": "Логика вендора завязана на TAC=8 символов — нужно явно подтвердить соответствие справочнику.",
+          "guiding_questions": [
+            "TABLE_DEVICE_REF ключуется по 8-символьному TAC?",
+            "Как обрабатываются IMEI короче 8 символов?"
+          ],
+          "recommendation": "В комментарии к полю добавь: «при len(imei)<8 → Unknown».",
+          "probability": 0.6,
+          "impact": 0.6,
+          "score": 0.36,
+          "doneness": "medium_rare",
+          "traffic_light": "yellow",
+          "status": "open",
+          "anchor": {
+            "page": null,
+            "excerpt": "…енование вендора устройства | substring(imei, 1, 8) = tac → vendor_name | | 3 | FIELD_USERS_CNT | bigint | Уникальное количество абонентов (IMSI…"
+          },
+          "agent": "Agent QA",
+          "focus_area": "fields_logic",
+          "block_id": "structure",
+          "kind": "content",
+          "created_at": "2026-09-03T10:49:28Z",
+          "resolved_at": null
+        }
+      ]
+    }
+  ],
+  "blank_templates": {
+    "flow": "Общие сведения\n\nРешаемая проблема\n\nПродуктовые метрики\n\nЗаказчики\n\nНефункциональные требования\n\nСистемы-источники\n\nData Catalog\n\nИсходники проекта / GitLab\n\nКоманда\n\nJIRA\n\nИсточники данных\n\nИсточники обогащения данных\n\nПриёмники данных\n\nСхема потоков данных\n\nАлгоритм обработки\n\nСтруктура данных\n\nПример данных\n\nDDL\n\nFAQ\n\nИстория изменений\n",
+    "source": "Общие сведения\n\nРешаемая проблема\n\nЗаказчики\n\nНефункциональные требования\n\nСистемы-источники\n\nКоманда\n\nИсточники данных\n\nПриёмники данных\n\nАлгоритм обработки\n\nСтруктура данных\n\nПример данных\n\nFAQ\n\nИстория изменений\n",
+    "aggregate_mart": "Общие сведения\n\nЗаказчики\n\nНефункциональные требования\n\nСистемы-источники\n\nData Catalog\n\nКоманда\n\nJIRA\n\nИсточники данных\n\nАлгоритм обработки\n\nСтруктура данных\n\nПример данных\n\nDDL\n\nИстория изменений\n"
+  }
+}
