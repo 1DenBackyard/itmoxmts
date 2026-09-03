@@ -101,3 +101,9 @@ jobs:
           ssh "$VM_USER@$VM_HOST" \
             "sudo docker compose --project-name net-specguard --project-directory '$VM_APP_DIR' -f '$VM_APP_DIR/docker-compose.yml' logs --tail 100 app"
           exit 1
+
+      - name: Verify public HTTPS
+        run: |
+          curl --fail --silent --show-error \
+            --retry 12 --retry-delay 5 --retry-all-errors \
+            https://aitalenthack.cloudru-edu.ru/_stcore/health
