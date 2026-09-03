@@ -6,12 +6,13 @@ from collections import Counter
 from datetime import UTC, datetime
 from functools import lru_cache
 
-from sqlalchemy import DateTime, Float, ForeignKey, String, Text, create_engine, select
+from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text, create_engine, select
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship, sessionmaker
 
 from specguard.auth import hash_password, verify_password
 from specguard.config import get_settings
 from specguard.review.schemas import ReviewResult
+from specguard.storage import StoredDocument
 
 
 def _uuid() -> str:
@@ -50,9 +51,29 @@ class Review(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
     user: Mapped[User] = relationship(back_populates="reviews")
+    document: Mapped[DocumentObject | None] = relationship(
+        back_populates="review", cascade="all, delete-orphan", uselist=False
+    )
     issues: Mapped[list[IssueRecord]] = relationship(
         back_populates="review", cascade="all, delete-orphan"
     )
+
+
+class DocumentObject(Base):
+    __tablename__ = "document_objects"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    review_id: Mapped[str] = mapped_column(ForeignKey("reviews.id"), unique=True, index=True)
+    backend: Mapped[str] = mapped_column(String(20))
+    bucket: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    object_key: Mapped[str] = mapped_column(String(1024))
+    content_type: Mapped[str] = mapped_column(String(255))
+    size_bytes: Mapped[int] = mapped_column(Integer)
+    content_hash: Mapped[str] = mapped_column(String(64))
+    etag: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+    review: Mapped[Review] = relationship(back_populates="document")
 
 
 class IssueRecord(Base):
@@ -124,6 +145,7 @@ class Repository:
         filename: str,
         document_text: str,
         result: ReviewResult,
+        document: StoredDocument | None = None,
     ) -> str:
         with self.session_factory() as session:
             review = Review(
@@ -134,6 +156,19 @@ class Repository:
             )
             session.add(review)
             session.flush()
+            if document:
+                session.add(
+                    DocumentObject(
+                        review_id=review.id,
+                        backend=document.backend,
+                        bucket=document.bucket,
+                        object_key=document.object_key,
+                        content_type=document.content_type,
+                        size_bytes=document.size_bytes,
+                        content_hash=document.content_hash,
+                        etag=document.etag,
+                    )
+                )
             for issue in result.issues:
                 session.add(
                     IssueRecord(
@@ -160,6 +195,7 @@ class Repository:
             )
             if not review:
                 return None
+            _ = review.document
             _ = list(review.issues)
             return review
 

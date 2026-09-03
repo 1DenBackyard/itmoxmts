@@ -24,6 +24,15 @@ class Settings:
     llm_api_key: str
     llm_model: str
     max_document_chars: int
+    document_storage_backend: str = "local"
+    document_storage_path: str = "data/documents"
+    s3_endpoint_url: str = "https://s3.cloud.ru"
+    s3_region: str = "ru-central-1"
+    s3_bucket: str = ""
+    s3_access_key_id: str = ""
+    s3_secret_access_key: str = ""
+    s3_prefix: str = "documents"
+    s3_server_side_encryption: str = ""
 
 
 @lru_cache(maxsize=1)
@@ -36,4 +45,13 @@ def get_settings() -> Settings:
         llm_api_key=os.getenv("LLM_API_KEY", ""),
         llm_model=os.getenv("LLM_MODEL", "ai-sage/GigaChat3-10B-A1.8B"),
         max_document_chars=int(os.getenv("MAX_DOCUMENT_CHARS", "120000")),
+        document_storage_backend=os.getenv("DOCUMENT_STORAGE_BACKEND", "local"),
+        document_storage_path=os.getenv("DOCUMENT_STORAGE_PATH", "data/documents"),
+        s3_endpoint_url=os.getenv("S3_ENDPOINT_URL", "https://s3.cloud.ru"),
+        s3_region=os.getenv("S3_REGION", "ru-central-1"),
+        s3_bucket=os.getenv("S3_BUCKET", ""),
+        s3_access_key_id=os.getenv("S3_ACCESS_KEY_ID", ""),
+        s3_secret_access_key=os.getenv("S3_SECRET_ACCESS_KEY", ""),
+        s3_prefix=os.getenv("S3_PREFIX", "documents"),
+        s3_server_side_encryption=os.getenv("S3_SERVER_SIDE_ENCRYPTION", ""),
     )

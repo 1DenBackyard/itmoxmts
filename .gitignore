@@ -9,5 +9,6 @@ __pycache__/
 .ruff_cache/
 data/*.db
 data/*.db-*
+data/documents/
 uploads/
 *.log

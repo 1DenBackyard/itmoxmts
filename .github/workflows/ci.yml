@@ -1,9 +1,17 @@
-name: CI
+name: CI/CD
 
 on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   test:
@@ -30,3 +38,66 @@ jobs:
           context: .
           push: false
           tags: net-specguard:ci
+
+  deploy:
+    name: Deploy production
+    runs-on: ubuntu-latest
+    needs: [test, docker]
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    environment: production
+    env:
+      VM_HOST: 176.123.165.124
+      VM_USER: denbackyard
+      VM_APP_DIR: /home/denbackyard/net-specguard
+      VM_SSH_PRIVATE_KEY: ${{ secrets.VM_SSH_PRIVATE_KEY }}
+      PROD_ENV_FILE: ${{ secrets.PROD_ENV_FILE }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate deployment secrets
+        run: |
+          test -n "$VM_SSH_PRIVATE_KEY"
+          test -n "$PROD_ENV_FILE"
+
+      - name: Configure SSH
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$VM_SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          cp ops/known_hosts ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Sync release from GitHub
+        run: |
+          ssh "$VM_USER@$VM_HOST" "mkdir -p '$VM_APP_DIR'"
+          rsync -az --delete \
+            --exclude='.env' \
+            --exclude='.git/' \
+            --exclude='data/' \
+            ./ "$VM_USER@$VM_HOST:$VM_APP_DIR/"
+
+      - name: Install production environment
+        run: |
+          printf '%s\n' "$PROD_ENV_FILE" > "$RUNNER_TEMP/production.env"
+          chmod 600 "$RUNNER_TEMP/production.env"
+          scp "$RUNNER_TEMP/production.env" "$VM_USER@$VM_HOST:$VM_APP_DIR/.env.next"
+          ssh "$VM_USER@$VM_HOST" "chmod 600 '$VM_APP_DIR/.env.next'"
+          ssh "$VM_USER@$VM_HOST" "mv '$VM_APP_DIR/.env.next' '$VM_APP_DIR/.env'"
+
+      - name: Build and restart services
+        run: |
+          ssh "$VM_USER@$VM_HOST" \
+            "sudo docker compose --project-name net-specguard --project-directory '$VM_APP_DIR' -f '$VM_APP_DIR/docker-compose.yml' up -d --build --remove-orphans"
+
+      - name: Verify deployment
+        run: |
+          for attempt in {1..30}; do
+            if ssh "$VM_USER@$VM_HOST" "curl --fail --silent http://127.0.0.1:8501/_stcore/health"; then
+              echo "Deployment is healthy: $GITHUB_SHA"
+              exit 0
+            fi
+            sleep 2
+          done
+          ssh "$VM_USER@$VM_HOST" \
+            "sudo docker compose --project-name net-specguard --project-directory '$VM_APP_DIR' -f '$VM_APP_DIR/docker-compose.yml' logs --tail 100 app"
+          exit 1
