@@ -11,6 +11,8 @@ services:
       LLM_BASE_URL: ${LLM_BASE_URL:-https://foundation-models.api.cloud.ru/v1}
       LLM_API_KEY: ${LLM_API_KEY:-}
       LLM_MODEL: ${LLM_MODEL:-ai-sage/GigaChat3-10B-A1.8B}
+      LLM_TIMEOUT_SECONDS: ${LLM_TIMEOUT_SECONDS:-45}
+      LLM_MAX_RETRIES: ${LLM_MAX_RETRIES:-0}
       DOCUMENT_STORAGE_BACKEND: ${DOCUMENT_STORAGE_BACKEND:-local}
       DOCUMENT_STORAGE_PATH: ${DOCUMENT_STORAGE_PATH:-data/documents}
       S3_ENDPOINT_URL: ${S3_ENDPOINT_URL:-https://s3.cloud.ru}

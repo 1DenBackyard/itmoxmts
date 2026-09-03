@@ -24,6 +24,8 @@ class Settings:
     llm_api_key: str
     llm_model: str
     max_document_chars: int
+    llm_timeout_seconds: float = 45.0
+    llm_max_retries: int = 0
     document_storage_backend: str = "local"
     document_storage_path: str = "data/documents"
     s3_endpoint_url: str = "https://s3.cloud.ru"
@@ -45,6 +47,8 @@ def get_settings() -> Settings:
         llm_api_key=os.getenv("LLM_API_KEY", ""),
         llm_model=os.getenv("LLM_MODEL", "ai-sage/GigaChat3-10B-A1.8B"),
         max_document_chars=int(os.getenv("MAX_DOCUMENT_CHARS", "120000")),
+        llm_timeout_seconds=float(os.getenv("LLM_TIMEOUT_SECONDS", "45")),
+        llm_max_retries=int(os.getenv("LLM_MAX_RETRIES", "0")),
         document_storage_backend=os.getenv("DOCUMENT_STORAGE_BACKEND", "local"),
         document_storage_path=os.getenv("DOCUMENT_STORAGE_PATH", "data/documents"),
         s3_endpoint_url=os.getenv("S3_ENDPOINT_URL", "https://s3.cloud.ru"),

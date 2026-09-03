@@ -30,6 +30,8 @@ class CloudRuLLMReviewer(Reviewer):
         self._client = OpenAI(
             api_key=settings.llm_api_key,
             base_url=settings.llm_base_url,
+            timeout=settings.llm_timeout_seconds,
+            max_retries=settings.llm_max_retries,
         )
 
     def review(self, text: str) -> list[ReviewIssue]:
