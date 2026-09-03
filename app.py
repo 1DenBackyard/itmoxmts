@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from collections import Counter
 
 import pandas as pd
@@ -11,6 +12,8 @@ from specguard.documents import DocumentExtractionError, extract_text
 from specguard.review import ReviewOrchestrator
 from specguard.storage import DocumentStorageError, create_document_storage
 
+logging.basicConfig(level=logging.INFO)
+logging.getLogger("specguard").setLevel(logging.INFO)
 st.set_page_config(page_title="NET SpecGuard", page_icon="🔎", layout="wide")
 
 SEVERITY_LABELS = {
@@ -87,7 +90,12 @@ def render_review(review: Review, user_id: str) -> None:
     st.subheader(review.filename)
     st.caption(f"Статус готовности: {review.result_status}")
     if not review.issues:
-        st.success("Существенных замечаний не найдено")
+        if review.result_status.startswith("Проверка"):
+            st.warning(
+                "Проверка не завершена полностью. Отсутствие замечаний не означает готовность."
+            )
+        else:
+            st.success("Существенных замечаний не найдено")
     for issue in review.issues:
         render_issue(issue, user_id)
 
@@ -175,7 +183,10 @@ def review_page(user_id: str) -> None:
             st.session_state.last_review_id = review_id
             if result.warnings:
                 st.warning("; ".join(result.warnings))
-            st.success(f"Ревью завершено: {result.status}")
+            if result.warnings:
+                st.warning(f"Результат: {result.status}. Замечания требуют ручного ревью.")
+            else:
+                st.success(f"Ревью завершено: {result.status}")
         except DocumentExtractionError as exc:
             st.error(str(exc))
         except DocumentStorageError as exc:
@@ -221,7 +232,7 @@ def architecture_page() -> None:
     st.title("Как работает система")
     st.markdown(
         """
-1. Документ преобразуется в общий контекст и карту фактов.
+1. Из документа извлекается текст; полный текст получают все четыре ревьюера.
 2. Аналитик, Data Engineer, архитектор и QA проверяют свои зоны параллельно.
 3. Критик отбрасывает замечания без доказательства в тексте.
 4. Судья объединяет дубли и назначает итоговый приоритет.
@@ -229,8 +240,12 @@ def architecture_page() -> None:
 6. Только подтверждённые проблемы формируют персональную статистику.
 """
     )
-    mode = "Cloud.ru Foundation Models" if settings.llm_enabled else "локальные правила"
-    st.success(f"Текущий режим ревью: {mode}")
+    if settings.llm_enabled and settings.llm_api_key:
+        st.info(f"Модель всех ролей: {settings.llm_model}")
+        controls = "включены" if settings.llm_control_enabled else "выключены"
+        st.caption(f"LLM-критик и судья: {controls}")
+    else:
+        st.warning("LLM не настроена: анализ недоступен. Локальных regex-агентов больше нет.")
     storage_mode = (
         f"Cloud.ru Object Storage / {settings.s3_bucket}"
         if settings.document_storage_backend.lower() == "s3"
