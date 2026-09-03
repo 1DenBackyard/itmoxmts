@@ -222,6 +222,33 @@ postgresql+psycopg://USER:PASSWORD@HOST:5432/DATABASE?sslmode=require
 7. Добавить Caddy или Nginx перед Streamlit, выпустить TLS-сертификат и не публиковать порт PostgreSQL.
 8. Проверить `/_stcore/health`, вход, загрузку ТЗ и появление объекта в бакете.
 
+## CI/CD из GitHub в production
+
+Workflow `.github/workflows/ci.yml` работает так:
+
+- Pull Request: установка зависимостей, Ruff, Pytest, compileall и сборка Docker-образа;
+- push/merge в `main`: те же проверки, затем синхронизация точного commit на VM, установка production `.env`, `docker compose up -d --build` и health check;
+- ручной повтор: **GitHub → Actions → CI/CD → Run workflow** на ветке `main`.
+
+Деплой использует GitHub Environment `production` и два Actions Secret:
+
+| Secret | Содержимое |
+|---|---|
+| `VM_SSH_PRIVATE_KEY` | Отдельный приватный ключ GitHub Actions для входа на VM |
+| `PROD_ENV_FILE` | Полное содержимое production `.env`, включая FM/S3 credentials |
+
+Первичная настройка в GitHub:
+
+1. Открыть **Settings → Secrets and variables → Actions → New repository secret**.
+2. Добавить secrets `VM_SSH_PRIVATE_KEY` и `PROD_ENV_FILE`.
+3. Опционально открыть **Settings → Environments**, создать `production` и включить доступные для тарифа protection rules. Для приватного репозитория на GitHub Free environment secrets и required reviewers могут быть недоступны, поэтому базовая схема использует repository secrets.
+4. Создать Pull Request из рабочей ветки в `main` и дождаться зелёного CI.
+5. Merge Pull Request автоматически запустит production deploy.
+
+IP, пользователь и каталог VM сейчас зафиксированы в workflow: `176.123.165.124`, `denbackyard`, `/home/denbackyard/net-specguard`. Приложение остаётся привязано к `127.0.0.1:8501`; внешний доступ должен идти через reverse proxy с HTTPS.
+
+Секреты нельзя добавлять в Git, workflow-файлы или логи. Чтобы изменить FM-токен, пароль или S3-ключи, обновите только `PROD_ENV_FILE` в GitHub Environment и повторно запустите workflow.
+
 ## Проверки
 
 ```bash
