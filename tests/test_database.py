@@ -1,21 +1,12 @@
 from pathlib import Path
 
-from specguard.config import Settings
+from conftest import FakeGateway, make_issue, make_settings
+
 from specguard.database import Repository
-from specguard.review import ReviewOrchestrator
+from specguard.review.llm import CloudRuLLMReviewer
+from specguard.review.pipeline import ReviewOrchestrator
+from specguard.review.schemas import AgentResponse
 from specguard.storage import StoredDocument
-
-
-def settings() -> Settings:
-    return Settings(
-        database_url="sqlite:///:memory:",
-        demo_password="demo",
-        llm_enabled=False,
-        llm_base_url="https://example.test/v1",
-        llm_api_key="",
-        llm_model="test",
-        max_document_chars=10_000,
-    )
 
 
 def test_review_and_confirmed_issue_are_persisted(tmp_path: Path) -> None:
@@ -25,7 +16,9 @@ def test_review_and_confirmed_issue_are_persisted(tmp_path: Path) -> None:
     assert user is not None
 
     text = "Способ загрузки: инкремент. Обновление: только полная перезагрузка месяца."
-    result = ReviewOrchestrator(settings()).run(text)
+    gateway = FakeGateway(AgentResponse(issues=[make_issue()]))
+    reviewer = CloudRuLLMReviewer("Аналитик", gateway)
+    result = ReviewOrchestrator(make_settings(), reviewers=[reviewer]).run(text)
     review_id = repository.save_review(
         user_id=user.id,
         filename="spec.txt",

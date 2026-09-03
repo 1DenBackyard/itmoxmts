@@ -1,6 +1,6 @@
 import pytest
+from conftest import FakeGateway, make_issue, make_settings
 
-from specguard.config import Settings
 from specguard.review import prompts
 from specguard.review.llm import (
     REVIEWER_ROLES,
@@ -10,62 +10,9 @@ from specguard.review.llm import (
     cloud_control_agents,
     cloud_reviewers,
 )
-from specguard.review.pipeline import ReviewOrchestrator
-from specguard.review.schemas import (
-    CriticResponse,
-    Evidence,
-    JudgeResponse,
-    ReviewIssue,
-    Severity,
-)
+from specguard.review.schemas import CriticResponse, JudgeResponse, Severity
 
 DOCUMENT = "Способ загрузки: инкремент. Обновление: только полная перезагрузка месяца."
-
-
-def settings(**overrides: object) -> Settings:
-    base = {
-        "database_url": "sqlite:///:memory:",
-        "demo_password": "demo",
-        "llm_enabled": False,
-        "llm_base_url": "https://example.test/v1",
-        "llm_api_key": "",
-        "llm_model": "test",
-        "max_document_chars": 10_000,
-    }
-    base.update(overrides)
-    return Settings(**base)
-
-
-class FakeGateway:
-    """Подменяет вызов модели заранее заданными ответами."""
-
-    def __init__(self, *responses: object) -> None:
-        self.responses = list(responses)
-        self.calls: list[dict[str, str]] = []
-
-    def structured(self, *, system: str, user: str, schema_name: str, schema: type) -> object:
-        self.calls.append({"system": system, "user": user, "schema_name": schema_name})
-        response = self.responses.pop(0)
-        if isinstance(response, Exception):
-            raise response
-        return response
-
-
-def issue(**overrides: object) -> ReviewIssue:
-    payload = {
-        "agent": "LLM · Аналитик",
-        "category": "load_strategy",
-        "severity": Severity.MAJOR,
-        "title": "Неоднозначная стратегия загрузки",
-        "evidence": [Evidence(quote="Способ загрузки: инкремент.")],
-        "problem": "Инкремент и полная перезагрузка описаны одновременно.",
-        "impact": "Реализация может отличаться от ожидаемой.",
-        "question": "Что перезагружается при повторном запуске?",
-        "recommendation": "Описать initial load, инкремент и rerun.",
-        "confidence": 0.9,
-    }
-    payload.update(overrides)
-    return ReviewIssue(**payload)
 
 
 def test_every_reviewer_role_has_prompt() -> None:
@@ -75,13 +22,18 @@ def test_every_reviewer_role_has_prompt() -> None:
         assert prompts.ROLE_BRIEFS[role] in prompt
 
 
+def test_reviewer_prompts_are_distinct() -> None:
+    rendered = {role: prompts.reviewer_system_prompt(role) for role in REVIEWER_ROLES}
+    assert len(set(rendered.values())) == len(REVIEWER_ROLES)
+
+
 def test_unknown_role_is_rejected() -> None:
     with pytest.raises(KeyError):
         prompts.reviewer_system_prompt("Дизайнер")
 
 
 def test_reviewer_stamps_own_name_on_issues() -> None:
-    gateway = FakeGateway(type("R", (), {"issues": [issue(agent="подменённое имя")]})())
+    gateway = FakeGateway(type("R", (), {"issues": [make_issue(agent="подменённое имя")]})())
     reviewer = CloudRuLLMReviewer(prompts.QA, gateway)
 
     result = reviewer.review(DOCUMENT)
@@ -114,7 +66,7 @@ def test_critic_drops_rejected_and_scales_confidence() -> None:
     )
     critic = CloudRuEvidenceCritic(gateway)
 
-    kept = critic.screen(DOCUMENT, [issue(), issue(category="missing_data_volume")])
+    kept = critic.screen(DOCUMENT, [make_issue(), make_issue(category="missing_data_volume")])
 
     assert [item.category for item in kept] == ["load_strategy"]
     assert kept[0].confidence == pytest.approx(0.72)
@@ -123,9 +75,20 @@ def test_critic_drops_rejected_and_scales_confidence() -> None:
 def test_critic_keeps_issue_missing_from_verdicts() -> None:
     gateway = FakeGateway(CriticResponse(verdicts=[]))
 
-    kept = CloudRuEvidenceCritic(gateway).screen(DOCUMENT, [issue()])
+    kept = CloudRuEvidenceCritic(gateway).screen(DOCUMENT, [make_issue()])
 
     assert len(kept) == 1
+
+
+def test_critic_drops_hallucinated_quote_before_calling_model() -> None:
+    gateway = FakeGateway()  # ни одного ответа не запрограммировано — модель не должна звать
+
+    kept = CloudRuEvidenceCritic(gateway).screen(
+        DOCUMENT, [make_issue(evidence=[{"quote": "Этой фразы в документе нет вообще"}])]
+    )
+
+    assert kept == []
+    assert gateway.calls == []
 
 
 def test_judge_merges_duplicates_and_reassigns_severity() -> None:
@@ -152,7 +115,9 @@ def test_judge_merges_duplicates_and_reassigns_severity() -> None:
         )
     )
 
-    kept = CloudRuIssueJudge(gateway).arbitrate([issue(), issue(agent="LLM · Архитектор")])
+    kept = CloudRuIssueJudge(gateway).arbitrate(
+        [make_issue(), make_issue(agent="LLM · Архитектор")]
+    )
 
     assert len(kept) == 1
     assert kept[0].severity is Severity.BLOCKER
@@ -183,17 +148,17 @@ def test_judge_never_silently_drops_blocker() -> None:
     )
 
     kept = CloudRuIssueJudge(gateway).arbitrate(
-        [issue(severity=Severity.BLOCKER), issue(category="missing_data_volume")]
+        [make_issue(severity=Severity.BLOCKER), make_issue(category="missing_data_volume")]
     )
 
     assert {item.severity for item in kept} == {Severity.BLOCKER, Severity.MINOR}
 
 
 def test_control_agents_follow_settings() -> None:
-    assert cloud_control_agents(settings()) == (None, None)
-    assert cloud_reviewers(settings()) == []
+    assert cloud_control_agents(make_settings()) == (None, None)
+    assert cloud_reviewers(make_settings()) == []
 
-    enabled = settings(llm_enabled=True, llm_api_key="key")
+    enabled = make_settings(llm_enabled=True, llm_api_key="key")
     critic, judge = cloud_control_agents(enabled)
     assert isinstance(critic, CloudRuEvidenceCritic)
     assert isinstance(judge, CloudRuIssueJudge)
@@ -205,22 +170,5 @@ def test_control_agents_follow_settings() -> None:
     ]
 
     assert cloud_control_agents(
-        settings(llm_enabled=True, llm_api_key="key", llm_control_enabled=False)
+        make_settings(llm_enabled=True, llm_api_key="key", llm_control_enabled=False)
     ) == (None, None)
-
-
-def test_orchestrator_degrades_when_control_agents_fail() -> None:
-    document = """
-    Способ загрузки: инкремент.
-    Обновление: только полная перезагрузка месяца без upsert.
-    """
-    orchestrator = ReviewOrchestrator(
-        settings(),
-        llm_critic=CloudRuEvidenceCritic(FakeGateway(RuntimeError("timeout"))),
-        llm_judge=CloudRuIssueJudge(FakeGateway(RuntimeError("timeout"))),
-    )
-
-    result = orchestrator.run(document)
-
-    assert any(issue.category == "load_strategy" for issue in result.issues)
-    assert any("перепроверка недоступна" in warning for warning in result.warnings)
