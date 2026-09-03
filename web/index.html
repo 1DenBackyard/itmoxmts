@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>МТС · Прожарка документации</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/mts.css?v=9" />
+</head>
+<body>
+  <div id="app">
+    <!-- rendered by js -->
+  </div>
+  <script src="vendor/pdf.min.js"></script>
+  <script>
+    window.pdfjsLib = window.pdfjsLib || window["pdfjs-dist/build/pdf"] || window.pdfjsLib;
+    if (window.pdfjsLib) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = "vendor/pdf.worker.min.js";
+    }
+  </script>
+  <script src="js/autofix.js?v=9"></script>
+  <script src="js/analyzer.js?v=9"></script>
+  <script src="js/pdf_import.js?v=9"></script>
+  <script src="js/pdf_export.js?v=9"></script>
+  <script src="js/learning.js?v=9"></script>
+  <script src="js/app.js?v=10"></script>
+</body>
+</html>

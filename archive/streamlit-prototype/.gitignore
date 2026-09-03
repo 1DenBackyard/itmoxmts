@@ -1,0 +1,8 @@
+.env
+data/findings_store.json
+data/learning_events.json
+data/llm_logs/
+__pycache__/
+*.pyc
+.DS_Store
+.streamlit/secrets.toml
