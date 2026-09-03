@@ -34,6 +34,38 @@ class AgentResponse(BaseModel):
     issues: list[ReviewIssue] = Field(default_factory=list)
 
 
+class Verdict(StrEnum):
+    CONFIRMED = "confirmed"
+    REJECTED = "rejected"
+
+
+class CriticVerdict(BaseModel):
+    """Решение агента-критика по одному замечанию ролевого агента."""
+
+    issue_id: str
+    verdict: Verdict
+    reason: str
+    confidence: float = Field(ge=0, le=1)
+
+
+class CriticResponse(BaseModel):
+    verdicts: list[CriticVerdict] = Field(default_factory=list)
+
+
+class JudgeDecision(BaseModel):
+    """Решение агента-судьи: оставить, объединить с дублем, переоценить severity."""
+
+    issue_id: str
+    keep: bool
+    severity: Severity
+    duplicate_of: str = ""
+    reason: str = ""
+
+
+class JudgeResponse(BaseModel):
+    decisions: list[JudgeDecision] = Field(default_factory=list)
+
+
 class ReviewResult(BaseModel):
     status: str
     issues: list[ReviewIssue]

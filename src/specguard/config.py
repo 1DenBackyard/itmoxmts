@@ -25,6 +25,7 @@ class Settings:
     llm_model: str
     max_document_chars: int
     llm_fallback_model: str = "openai/gpt-oss-120b"
+    llm_control_enabled: bool = True
     llm_timeout_seconds: float = 45.0
     llm_max_retries: int = 0
     document_storage_backend: str = "local"
@@ -49,6 +50,7 @@ def get_settings() -> Settings:
         llm_model=os.getenv("LLM_MODEL", "zai-org/GLM-5.1"),
         max_document_chars=int(os.getenv("MAX_DOCUMENT_CHARS", "120000")),
         llm_fallback_model=os.getenv("LLM_FALLBACK_MODEL", "openai/gpt-oss-120b"),
+        llm_control_enabled=_as_bool(os.getenv("LLM_CONTROL_ENABLED"), default=True),
         llm_timeout_seconds=float(os.getenv("LLM_TIMEOUT_SECONDS", "45")),
         llm_max_retries=int(os.getenv("LLM_MAX_RETRIES", "0")),
         document_storage_backend=os.getenv("DOCUMENT_STORAGE_BACKEND", "local"),
