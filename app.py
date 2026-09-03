@@ -11,7 +11,13 @@ from specguard.database import IssueRecord, Review, get_repository
 from specguard.documents import DocumentExtractionError, extract_text
 from specguard.review import ReviewOrchestrator
 from specguard.storage import DocumentStorageError, create_document_storage
-from specguard.ui import STYLES, export_review, filter_issues
+from specguard.ui import (
+    CASEHOLDER_CHECKLIST,
+    STYLES,
+    document_preview,
+    export_review,
+    filter_issues,
+)
 
 logging.basicConfig(level=logging.INFO)
 logging.getLogger("specguard").setLevel(logging.INFO)
@@ -42,24 +48,26 @@ settings = get_settings()
 
 
 def login_page() -> None:
-    st.markdown('<div class="sg-eyebrow">МТС × AI TALENT HUB</div>', unsafe_allow_html=True)
-    st.title("NET SpecGuard")
-    st.subheader("Сильное ТЗ начинается с хорошего ревью")
-    st.caption("Мультиагентная проверка глазами аналитика, инженера, архитектора и QA")
-
-    with st.form("login", clear_on_submit=False):
-        email = st.text_input("Корпоративная почта", value="analyst@example.com")
-        password = st.text_input("Пароль", type="password")
-        submitted = st.form_submit_button("Войти", use_container_width=True)
-    if submitted:
-        user = repository.authenticate(email, password)
-        if user:
-            st.session_state.user_id = user.id
-            st.rerun()
-        st.error("Неверная почта или пароль")
-
-    if settings.demo_password == "demo1234":
-        st.info("Демо: analyst@example.com / demo1234")
+    _, center, _ = st.columns([1, 1.15, 1])
+    with center:
+        st.markdown(
+            '<div class="sg-login-copy"><div class="sg-eyebrow">МТС × AI TALENT HUB</div>'
+            "<h1>NET SpecGuard</h1><p>Проверка ТЗ до передачи в разработку</p></div>",
+            unsafe_allow_html=True,
+        )
+        with st.form("login", clear_on_submit=False):
+            email = st.text_input("Корпоративная почта", value="analyst@example.com")
+            password = st.text_input("Пароль", type="password")
+            submitted = st.form_submit_button("Войти", type="primary", use_container_width=True)
+        if settings.demo_password == "demo1234":
+            st.caption("Демо-доступ: analyst@example.com / demo1234")
+    with center:
+        if submitted:
+            user = repository.authenticate(email, password)
+            if user:
+                st.session_state.user_id = user.id
+                st.rerun()
+            st.error("Неверная почта или пароль")
 
 
 def render_issue(issue: IssueRecord, user_id: str) -> None:
@@ -102,8 +110,11 @@ def render_review(review: Review, user_id: str) -> None:
         st.info(f"Заключение ревью: {review.result_status}")
     st.caption("Заключение относится к исходной версии ТЗ. После правок запустите новое ревью.")
     totals = Counter(issue.severity for issue in review.issues)
-    for col, (severity, label) in zip(st.columns(4), SEVERITY_LABELS.items(), strict=True):
-        col.metric(label, totals[severity])
+    badges = "".join(
+        f"<span><b>{totals[severity]}</b>{label}</span>"
+        for severity, label in SEVERITY_LABELS.items()
+    )
+    st.markdown(f'<div class="sg-summary">{badges}</div>', unsafe_allow_html=True)
     st.download_button(
         "Скачать отчёт · JSON",
         export_review(review),
@@ -112,13 +123,8 @@ def render_review(review: Review, user_id: str) -> None:
         key=f"export-{review.id}",
     )
     if not review.issues:
-        if review.result_status.startswith("Проверка"):
-            st.warning(
-                "Проверка не завершена полностью. Отсутствие замечаний не означает готовность."
-            )
-        else:
+        if not review.result_status.startswith("Проверка"):
             st.success("Существенных замечаний не найдено")
-    if not review.issues:
         return
     priority, status, search = st.columns([1, 1, 2])
     severity = priority.selectbox(
@@ -177,25 +183,11 @@ def dashboard(user_id: str) -> None:
     st.caption("Показаны последние 10 проверок.")
 
 
-def review_page(user_id: str) -> None:
-    st.title("Проверка ТЗ")
-    st.caption("Найдите пробелы и противоречия до передачи документа в разработку.")
-    st.markdown(
-        '<div class="sg-steps"><span class="active">1 · Документ</span>'
-        "<span>2 · Четыре ревьюера → критик → судья</span>"
-        "<span>3 · Разбор замечаний</span></div>",
-        unsafe_allow_html=True,
-    )
+def review_form(user_id: str) -> None:
     if settings.document_storage_backend.lower() == "s3":
-        st.caption(
-            "Оригинал сохраняется в приватном Cloud.ru Object Storage; "
-            "в БД — только ссылка, hash, метаданные и замечания."
-        )
+        st.caption("Документ хранится в приватном Cloud.ru Object Storage.")
     else:
-        st.caption(
-            f"Локальный режим: оригинал сохраняется в {settings.document_storage_path}; "
-            "в БД — только ссылка, hash, метаданные и замечания."
-        )
+        st.caption(f"Локальный режим хранения: {settings.document_storage_path}.")
 
     source = st.radio("Источник", ["Файл", "Текст"], horizontal=True)
     uploaded = None
@@ -246,14 +238,8 @@ def review_page(user_id: str) -> None:
                 )
             st.session_state.last_review_id = review_id
             st.session_state.review_source_text = document_text
-            if result.warnings:
-                st.warning("; ".join(result.warnings))
-            if result.warnings:
-                st.warning(f"Результат: {result.status}. Замечания требуют ручного ревью.")
-            elif result.status.startswith("Проверка"):
-                st.warning(f"Результат: {result.status}")
-            else:
-                st.success(f"Ревью завершено: {result.status}")
+            st.session_state.review_warnings = result.warnings
+            st.rerun()
         except DocumentExtractionError as exc:
             st.error(str(exc))
         except DocumentStorageError as exc:
@@ -261,15 +247,46 @@ def review_page(user_id: str) -> None:
         except Exception as exc:
             st.error(f"Не удалось выполнить проверку: {type(exc).__name__}")
 
+
+def review_page(user_id: str) -> None:
     review_id = st.session_state.get("last_review_id")
+    st.title("Разбор документа" if review_id else "Новое ревью")
+    st.caption("Загрузите ТЗ — четыре роли проверят его, критик и судья очистят результат.")
+    stage = 3 if review_id else 1
+    steps = ("Документ", "Анализ", "Разбор замечаний")
+    st.markdown(
+        '<div class="sg-steps">'
+        + "".join(
+            f'<span class="{"active" if index == stage else ""}">{index} · {label}</span>'
+            for index, label in enumerate(steps, 1)
+        )
+        + "</div>",
+        unsafe_allow_html=True,
+    )
+    if review_id:
+        with st.expander("Загрузить новую версию или другой документ", expanded=False):
+            review_form(user_id)
+    else:
+        review_form(user_id)
+    if st.session_state.get("review_warnings"):
+        st.warning("; ".join(st.session_state.review_warnings))
     if review_id:
         review = repository.get_review(review_id, user_id)
         if review:
-            with st.expander("Исходный текст последней проверки"):
-                st.text(
-                    st.session_state.get("review_source_text", "Текст недоступен в этой сессии.")
+            st.markdown('<div class="sg-section"></div>', unsafe_allow_html=True)
+            source_col, findings_col = st.columns([1.1, 0.9], gap="large")
+            with source_col:
+                st.subheader("Исходный текст")
+                st.markdown(
+                    document_preview(
+                        st.session_state.get(
+                            "review_source_text", "Текст недоступен в этой сессии."
+                        )
+                    ),
+                    unsafe_allow_html=True,
                 )
-            render_review(review, user_id)
+            with findings_col:
+                render_review(review, user_id)
 
 
 def errors_page(user_id: str) -> None:
@@ -287,26 +304,26 @@ def errors_page(user_id: str) -> None:
         "В профиль входят только принятые или исправленные замечания. "
         "Открытые гипотезы LLM не считаются ошибками сотрудника."
     )
-    if not categories:
-        st.info("Подтверждённых ошибок пока нет.")
-        return
+    if categories:
+        frame = pd.DataFrame(
+            [{"Категория": category, "Количество": count} for category, count in categories.items()]
+        ).sort_values("Количество", ascending=False)
+        st.bar_chart(frame.set_index("Категория"))
+        most_common = frame.iloc[0]["Категория"]
+        st.info(f"Чаще всего повторяется категория «{most_common}».")
+    else:
+        st.info("Подтверждённых ошибок пока нет — показываем базовый чек-лист кейсодателя.")
 
-    frame = pd.DataFrame(
-        [{"Категория": category, "Количество": count} for category, count in categories.items()]
-    ).sort_values("Количество", ascending=False)
-    st.bar_chart(frame.set_index("Категория"))
-    st.dataframe(frame, hide_index=True, use_container_width=True)
-
-    most_common = frame.iloc[0]["Категория"]
-    st.subheader("Персональная рекомендация")
-    st.info(
-        f"Чаще всего повторяется категория «{most_common}». "
-        "Перед следующим ревью проверьте соответствующий раздел по персональному чек-листу."
-    )
-    st.subheader("Ваш чек-лист перед следующей проверкой")
-    for category, count in categories.most_common(5):
-        st.checkbox(f"Перепроверить: {category} · {count} подтверждённых", key=f"check-{category}")
-    st.caption("Чек-лист действует в этой сессии. Он не меняет решения по замечаниям.")
+    st.subheader("Чек-лист перед передачей ТЗ")
+    for index, label in enumerate(CASEHOLDER_CHECKLIST):
+        st.checkbox(label, key=f"caseholder-{index}")
+    if categories:
+        st.subheader("Повторяющиеся ошибки")
+        for category, count in categories.most_common(5):
+            st.checkbox(
+                f"Перепроверить «{category}» · подтверждено: {count}", key=f"check-{category}"
+            )
+    st.caption("Отметки чек-листа сохраняются только в текущей сессии.")
 
 
 def architecture_page() -> None:
@@ -345,9 +362,12 @@ if not user:
     st.rerun()
 
 with st.sidebar:
-    st.title("NET SpecGuard")
-    st.write(user.full_name)
-    st.caption(user.role)
+    st.markdown(
+        '<div class="sg-brand"><span class="sg-mark">N</span>NET SpecGuard</div>',
+        unsafe_allow_html=True,
+    )
+    st.write(f"**{user.full_name}**")
+    st.caption({"analyst": "Аналитик", "engineer": "Инженер"}.get(user.role, user.role))
     page = st.radio(
         "Рабочее пространство", ["Проверка ТЗ", "История", "Мой прогресс", "Как это работает"]
     )

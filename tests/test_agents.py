@@ -20,11 +20,18 @@ def test_every_reviewer_role_has_prompt() -> None:
         prompt = prompts.reviewer_system_prompt(role)
         assert prompts.SHARED_REVIEWER_RULES in prompt
         assert prompts.ROLE_BRIEFS[role] in prompt
+        assert prompts.CASEHOLDER_GUIDANCE in prompt
 
 
 def test_reviewer_prompts_are_distinct() -> None:
     rendered = {role: prompts.reviewer_system_prompt(role) for role in REVIEWER_ROLES}
     assert len(set(rendered.values())) == len(REVIEWER_ROLES)
+
+
+def test_critic_uses_caseholder_requirements() -> None:
+    assert prompts.CASEHOLDER_GUIDANCE in prompts.CRITIC_SYSTEM_PROMPT
+    assert "разделы не удаляются" in prompts.CASEHOLDER_GUIDANCE
+    assert "10 строк" in prompts.CASEHOLDER_GUIDANCE
 
 
 def test_unknown_role_is_rejected() -> None:
