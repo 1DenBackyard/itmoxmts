@@ -51,7 +51,9 @@ class ReviewOrchestrator:
         self.settings = settings or get_settings()
 
         gateway: LLMGateway | None = None
-        if self.settings.llm_enabled and self.settings.llm_api_key:
+        if self.settings.llm_enabled and (
+            self.settings.llm_api_key or self.settings.deepseek_api_key
+        ):
             gateway = LLMGateway(self.settings)
 
         self.reviewers = (
@@ -107,7 +109,9 @@ class ReviewOrchestrator:
                     candidates.extend(findings)
                     logger.info(
                         "Reviewer completed agent=%s elapsed=%.1f issues=%d",
-                        reviewer.name, time.monotonic() - started_at, len(findings),
+                        reviewer.name,
+                        time.monotonic() - started_at,
+                        len(findings),
                     )
                 except Exception as exc:
                     logger.error(

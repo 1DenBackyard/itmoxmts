@@ -6,6 +6,29 @@ const path=require('node:path');
 const context={};vm.createContext(context);
 vm.runInContext(fs.readFileSync(path.join(__dirname,'../web/js/core.js'),'utf8'),context);
 const U=context.SpecUI;
+const issue=(id,evidence)=>({id,evidence,severity:'major',employee_decision:'open'});
+test('stable issue numbers annotate overlapping quotes without losing tables',()=>{
+  const text='Шаг 1. Фильтрация\nПоле | Тип\nid | string\nКонец';
+  const issues=[issue('a','id | string'),issue('b','string'),issue('c','нет такой цитаты')];
+  const html=U.documentHtml(text,'',issues,'b');
+  assert.ok(html.includes('<table'));
+  assert.ok(html.includes('data-annotation="a"'));
+  assert.ok(html.includes('data-annotation="b"'));
+  assert.ok(!html.includes('data-annotation="c"'));
+  assert.ok(html.includes('[1]')&&html.includes('[2]'));
+  assert.equal((html.match(/id="anchor-b"/g)||[]).length,1);
+  assert.ok(html.includes('issue-highlight selected'));
+});
+test('multiline quotes, duplicate quotes and hostile IDs remain safe',()=>{
+  const text='первая строка\nвторая строка\nпервая строка';
+  const issues=[issue('x" onclick="bad','первая строка\nвторая строка'),issue('b','первая строка')];
+  const html=U.documentHtml(text,'',issues);
+  assert.ok(html.includes('первая строка'));
+  assert.ok(!html.includes(' onclick="bad'));
+  assert.equal(U.anchors(text,issues)[1].repeated,true);
+  assert.equal((html.match(/id="anchor-b"/g)||[]).length,1);
+  assert.equal(U.anchors(text,[issue('c','несуществующая')]).length,0);
+});
 test('document rendering escapes HTML including quote marks',()=>{
   const text='<img src=x onerror="alert(1)">';
   const html=U.documentHtml(text,text);

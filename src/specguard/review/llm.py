@@ -1,4 +1,4 @@
-"""LLM-агенты поверх OpenAI-совместимого API Cloud.ru Foundation Models."""
+"""Structured LLM calls: optional DeepSeek primary, Cloud.ru FM fallback."""
 
 from __future__ import annotations
 
@@ -41,10 +41,20 @@ class LLMGateway:
     def __init__(self, settings: Settings) -> None:
         self._settings = settings
         self._client = OpenAI(
-            api_key=settings.llm_api_key,
+            api_key=settings.llm_api_key or "not-configured",
             base_url=settings.llm_base_url,
             timeout=settings.llm_timeout_seconds,
             max_retries=settings.llm_max_retries,
+        )
+        self._deepseek = (
+            OpenAI(
+                api_key=settings.deepseek_api_key,
+                base_url="https://api.deepseek.com",
+                timeout=settings.llm_timeout_seconds,
+                max_retries=settings.llm_max_retries,
+            )
+            if settings.deepseek_api_key
+            else None
         )
 
     @property
@@ -63,24 +73,40 @@ class LLMGateway:
         schema: type[ResponseT],
     ) -> ResponseT:
         last_error: Exception | None = None
-        for model in self._models:
+        targets = []
+        if getattr(self, "_deepseek", None):
+            targets.append((self._deepseek, self._settings.deepseek_model, True))
+        if self._settings.llm_api_key:
+            targets.extend((self._client, model, False) for model in self._models)
+        for client, model, is_deepseek in targets:
             started_at = time.monotonic()
             try:
-                response = self._client.chat.completions.create(
+                response_format = {
+                    "type": "json_schema",
+                    "json_schema": {
+                        "name": schema_name,
+                        "strict": True,
+                        "schema": schema.model_json_schema(),
+                    },
+                }
+                system_message = system
+                extra = {}
+                if is_deepseek:
+                    response_format = {"type": "json_object"}
+                    system_message += (
+                        "\nReturn only JSON matching this JSON Schema:\n"
+                        + json.dumps(schema.model_json_schema())
+                    )
+                    extra = {"max_tokens": 16384, "extra_body": {"thinking": {"type": "disabled"}}}
+                response = client.chat.completions.create(
                     model=model,
                     temperature=0,
                     messages=[
-                        {"role": "system", "content": system},
+                        {"role": "system", "content": system_message},
                         {"role": "user", "content": user},
                     ],
-                    response_format={
-                        "type": "json_schema",
-                        "json_schema": {
-                            "name": schema_name,
-                            "strict": True,
-                            "schema": schema.model_json_schema(),
-                        },
-                    },
+                    response_format=response_format,
+                    **extra,
                 )
                 choice = response.choices[0]
                 if choice.finish_reason != "stop" or not choice.message.content:
@@ -249,7 +275,7 @@ class CloudRuIssueJudge:
 
 
 def cloud_reviewers(settings: Settings, gateway: LLMGateway | None = None) -> list[Reviewer]:
-    if not settings.llm_enabled or not settings.llm_api_key:
+    if not settings.llm_enabled or not (settings.llm_api_key or settings.deepseek_api_key):
         return []
     gateway = gateway or LLMGateway(settings)
     return [CloudRuLLMReviewer(role, gateway) for role in REVIEWER_ROLES]
@@ -260,7 +286,11 @@ def cloud_control_agents(
     gateway: LLMGateway | None = None,
 ) -> tuple[CloudRuEvidenceCritic | None, CloudRuIssueJudge | None]:
     """Критик и судья с LLM. Отключаются вместе через LLM_CONTROL_ENABLED."""
-    if not settings.llm_enabled or not settings.llm_api_key or not settings.llm_control_enabled:
+    if (
+        not settings.llm_enabled
+        or not (settings.llm_api_key or settings.deepseek_api_key)
+        or not settings.llm_control_enabled
+    ):
         return None, None
     gateway = gateway or LLMGateway(settings)
     return CloudRuEvidenceCritic(gateway), CloudRuIssueJudge(gateway)

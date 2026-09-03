@@ -450,11 +450,13 @@ def create_app(repository=None, orchestrator=None, storage=None, *, secure_cooki
     @app.get("/api/system")
     def system(auth=Depends(session)):
         return {
-            "model": settings.llm_model,
+            "model": settings.deepseek_model if settings.deepseek_api_key else settings.llm_model,
             "reviewers": [r.name for r in reviewer.reviewers],
             "controls": settings.llm_control_enabled,
             "storage": settings.document_storage_backend,
-            "configured": bool(settings.llm_enabled and settings.llm_api_key),
+            "configured": bool(
+                settings.llm_enabled and (settings.llm_api_key or settings.deepseek_api_key)
+            ),
         }
 
     @app.get("/healthz")

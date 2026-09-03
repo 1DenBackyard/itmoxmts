@@ -3,7 +3,7 @@
   const U=window.SpecUI, E=U.escape, app=document.getElementById('app');
   const state={user:null,meta:null,page:'login',review:null,history:null,metrics:null,
     text:'',filename:'Техническое задание.txt',uploadId:null,docType:'flow',
-    filter:'open',query:'',edit:false,editText:'',quote:'',job:null,timer:null,checklist:new Set(),busy:false};
+    filter:'open',query:'',edit:false,editText:'',quote:'',selectedId:'',job:null,timer:null,checklist:new Set(),busy:false};
   const types={flow:['Поток данных','Источники, Kafka, обработка и структура потока.'],
     source:['Система-источник','Описание источников и контрактов данных.'],
     mart:['Витрина-агрегат','Маппинг полей, формулы и регламент обновления.']};
@@ -27,7 +27,7 @@
   function reset() {
     clearTimeout(state.timer);
     Object.assign(state,{user:null,page:'login',review:null,history:null,metrics:null,
-      text:'',uploadId:null,job:null,edit:false,busy:false,quote:'',checklist:new Set()});
+      text:'',editText:'',uploadId:null,job:null,edit:false,busy:false,quote:'',selectedId:'',checklist:new Set()});
   }
   function topbar(step=0) {
     return `<div class="topbar"><div class="brand">
@@ -134,13 +134,15 @@
   }
   async function openReview(id) {
     try{state.review=await api('/reviews/'+id);state.page='review';state.edit=false;
-      state.quote='';state.query='';state.filter='open';render();}catch(e){notice(e.message);}
+      state.quote='';state.selectedId='';state.query='';state.filter='open';render();}catch(e){notice(e.message);}
   }
   function issueHtml(i,index) {
     const color={blocker:'red',major:'orange',minor:'yellow',suggestion:'green'}[i.severity]||'orange';
-    return `<article class="comment ${color} ${i.employee_decision!=='open'?'done':''}" id="issue-${E(i.id)}">
-      <div class="meta"><span class="num">${index+1}</span><span>${E(U.severity[i.severity]||i.severity)}</span><span>${E(U.decisions[i.employee_decision])}</span></div>
+    const locations=U.anchors(state.review.text,[i]);
+    return `<article class="comment ${color} ${i.employee_decision!=='open'?'done':''} ${state.selectedId===i.id?'selected-issue':''}" id="issue-${E(i.id)}" tabindex="-1">
+      <div class="meta"><button class="num issue-number" data-locate="${E(i.id)}" aria-label="Найти замечание ${index+1} в документе">${index+1}</button><span>${E(U.severity[i.severity]||i.severity)}</span><span>${E(U.decisions[i.employee_decision])}</span></div>
       <h4>${E(i.title)}</h4><p class="problem">${E(i.problem)}</p>
+      ${!locations.length?'<p class="anchor-note">Нет точной привязки к тексту</p>':locations.some(a=>a.repeated)?'<p class="anchor-note">Цитата повторяется: показано первое совпадение</p>':''}
       <details><summary>Детали и вопросы</summary><p class="muted">${E(i.agent)} · ${E(i.category)}</p>
       <p><strong>Влияние:</strong> ${E(i.impact)}</p><blockquote>${E(i.evidence)}</blockquote>
       <p><strong>Вопрос:</strong> ${E(i.question)}</p><p><strong>Рекомендация:</strong> ${E(i.recommendation)}</p></details>
@@ -159,7 +161,7 @@
       <button class="btn btn-secondary btn-sm" id="recheck" ${!r.text||state.job?'disabled':''}>Перепроверить</button><button class="btn btn-primary btn-sm" id="summary">К итогу</button>`}</div></div>
       <div class="banner ${r.status.startsWith('Проверка')?'':'neutral'}">${E(r.status)}${r.warnings.length?' · '+E(r.warnings.join('; ')):''}</div>
       <div class="workspace"><div class="doc-pane"><div class="doc-paper"><div class="doc-title">${E(r.document)}</div>
-      ${state.edit?`<textarea id="doc-editor" class="doc-editor" aria-label="Текст ТЗ" maxlength="${state.meta.max_chars}">${E(state.editText)}</textarea>`:U.documentHtml(r.text,state.quote)}</div></div>
+      ${state.edit?`<textarea id="doc-editor" class="doc-editor" aria-label="Текст ТЗ" maxlength="${state.meta.max_chars}">${E(state.editText)}</textarea>`:U.documentHtml(r.text,'',r.issues,state.selectedId)}</div></div>
       <aside class="comments-pane"><div class="comments-head"><div class="comments-head-row"><span>Замечания · ${visible.length}</span><span>${s.fixed}/${s.total} исправлено</span></div>
       <input class="search-input" id="search" aria-label="Поиск замечаний" placeholder="Поиск замечаний" value="${E(state.query)}"></div>
       <div class="comments-filters">${[['critical','Критичные'],['open','Открытые'],['closed','Закрытые'],['all','Все']].map(([key,label])=>`<button class="filter-btn ${state.filter===key?'active':''}" data-filter="${key}">${label}</button>`).join('')}</div>
@@ -178,6 +180,11 @@
     const summary=document.getElementById('summary');if(summary)summary.onclick=()=>{state.page='summary';render();};
   }
   function bindIssues() {
+    document.querySelectorAll('[data-annotation]').forEach(b=>b.onclick=()=>{
+      state.selectedId=b.dataset.annotation;state.filter='all';state.query='';render();
+      const card=document.getElementById('issue-'+state.selectedId);
+      if(card){card.querySelector('details').open=true;card.focus({preventScroll:true});card.scrollIntoView({block:'nearest',behavior:'smooth'});}
+    });
     document.querySelectorAll('[data-decision]').forEach(b=>b.onclick=async()=>{
       b.disabled=true;
       try{await api('/issues/'+b.dataset.id+'/decision',{method:'POST',body:{decision:b.dataset.decision}});
@@ -188,10 +195,10 @@
     document.querySelectorAll('[data-locate]').forEach(b=>b.onclick=()=>{
       if(state.edit){notice('Сначала завершите редактирование');return;}
       const issue=state.review.issues.find(i=>i.id===b.dataset.locate);
-      const quotes=issue.evidence.split('\n---\n');
-      const quote=quotes.find(q=>state.review.text?.includes(q));
-      if(!quote){notice('Дословная цитата не найдена в исходном тексте');return;}
-      state.quote=quote;render();document.getElementById('active-quote')?.scrollIntoView({block:'center',behavior:'smooth'});
+      if(!U.anchors(state.review.text,[issue]).length){notice('Дословная цитата не найдена в исходном тексте');return;}
+      state.selectedId=issue.id;render();
+      const anchor=document.getElementById('anchor-'+issue.id);
+      if(anchor){anchor.focus({preventScroll:true});anchor.scrollIntoView({block:'center',behavior:'smooth'});}
     });
   }
   function download(name,type,content) {
@@ -242,7 +249,7 @@
     app.innerHTML=`<div class="shell">${topbar()}<section class="card content-card"><h2>Как работает проверка</h2>
       <ol><li>Из файла извлекается полный текст.</li><li>Аналитик, Data Engineer, архитектор и QA проверяют документ параллельно.</li>
       <li>Критик проверяет основания замечаний.</li><li>Судья объединяет дубли и уточняет приоритет.</li><li>Вы принимаете решения; только подтверждённые ошибки попадают в профиль.</li></ol>
-      <p>Модель: ${E(s.model)}</p><p>Критик и судья: ${s.controls?'включены':'выключены'}</p><p>Хранилище: ${E(s.storage)}</p>
+      <p>Инфраструктура приложения: Cloud.ru. Анализ выполняется через внешние API моделей.</p><p>Критик и судья: ${s.controls?'включены':'выключены'}</p><p>Хранилище: ${E(s.storage)}</p>
       ${!s.configured?'<div class="banner">Модель не настроена. Анализ недоступен.</div>':''}
       <p class="muted">Результат ИИ — предварительное ревью, не гарантия отсутствия дефектов.</p></section></div>`;bindNav();
   }
