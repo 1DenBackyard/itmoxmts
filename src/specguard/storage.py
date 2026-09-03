@@ -70,6 +70,19 @@ class LocalDocumentStorage:
         self.root = Path(root)
         self.prefix = prefix
 
+    def read_document(self, object_key: str, *, limit: int) -> bytes:
+        target = (self.root / object_key).resolve()
+        if not target.is_relative_to(self.root.resolve()):
+            raise DocumentStorageError("Некорректный путь документа")
+        try:
+            with target.open("rb") as stream:
+                content = stream.read(limit + 1)
+            if len(content) > limit:
+                raise DocumentStorageError("Документ превышает лимит загрузки")
+            return content
+        except OSError as exc:
+            raise DocumentStorageError("Не удалось прочитать исходный документ") from exc
+
     def put_document(
         self,
         *,
@@ -177,6 +190,22 @@ class S3DocumentStorage:
             content_hash=digest,
             etag=etag.strip('"') if etag else None,
         )
+
+    def read_document(self, object_key: str, *, limit: int) -> bytes:
+        try:
+            response = self.client.get_object(Bucket=self.bucket, Key=object_key)
+            stream = response["Body"]
+            try:
+                content = stream.read(limit + 1)
+            finally:
+                stream.close()
+            if len(content) > limit:
+                raise DocumentStorageError("Документ превышает лимит загрузки")
+            return content
+        except DocumentStorageError:
+            raise
+        except Exception as exc:
+            raise DocumentStorageError("Не удалось прочитать документ в Object Storage") from exc
 
 
 def create_document_storage(settings: Settings) -> DocumentStorage:

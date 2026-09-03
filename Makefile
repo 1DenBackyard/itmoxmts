@@ -1,7 +1,7 @@
 .PHONY: run test lint
 
 run:
-	PYTHONPATH=src .venv/bin/streamlit run app.py --server.address 127.0.0.1 --server.port 8501
+	SESSION_COOKIE_SECURE=false PYTHONPATH=src .venv/bin/uvicorn specguard.web:create_app --factory --host 127.0.0.1 --port 8501
 
 test:
 	PYTHONPATH=src .venv/bin/pytest

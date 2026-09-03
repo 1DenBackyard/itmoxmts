@@ -7,6 +7,7 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg://specguard:specguard@postgres:5432/specguard
       DEMO_PASSWORD: ${DEMO_PASSWORD:-demo1234}
+      SESSION_COOKIE_SECURE: "true"
       LLM_ENABLED: ${LLM_ENABLED:-false}
       LLM_BASE_URL: ${LLM_BASE_URL:-https://foundation-models.api.cloud.ru/v1}
       LLM_API_KEY: ${LLM_API_KEY:-}
