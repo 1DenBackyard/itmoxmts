@@ -1,6 +1,7 @@
 services:
   app:
     build: .
+    restart: unless-stopped
     ports:
       - "${APP_BIND_ADDRESS:-127.0.0.1}:${APP_PORT:-8501}:8080"
     environment:
@@ -25,8 +26,26 @@ services:
       postgres:
         condition: service_healthy
 
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN:-aitalenthack.cloudru-edu.ru}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      app:
+        condition: service_healthy
+
   postgres:
     image: postgres:16-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_DB: specguard
       POSTGRES_USER: specguard
@@ -42,3 +61,5 @@ services:
 volumes:
   postgres_data:
   document_data:
+  caddy_data:
+  caddy_config:

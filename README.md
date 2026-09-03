@@ -101,6 +101,7 @@ flowchart LR
 │       └── schemas.py             # Контракты результатов
 ├── tests/                         # Автоматические проверки
 ├── Dockerfile
+├── Caddyfile                      # HTTPS и reverse proxy
 ├── docker-compose.yml
 ├── Makefile                       # Команды локальной разработки
 └── .github/workflows/ci.yml
@@ -175,6 +176,7 @@ LLM_MODEL=ai-sage/GigaChat3-10B-A1.8B
 | `DATABASE_URL` | SQLAlchemy URL | `sqlite:///data/specguard.db` |
 | `APP_BIND_ADDRESS` | Адрес публикации Docker-порта | `127.0.0.1` |
 | `APP_PORT` | Порт приложения на хосте | `8501` |
+| `APP_DOMAIN` | Публичный домен для автоматического HTTPS | `aitalenthack.cloudru-edu.ru` |
 | `DEMO_PASSWORD` | Пароль демо-аккаунтов | `demo1234` |
 | `LLM_ENABLED` | Включить LLM-агентов | `false` |
 | `LLM_BASE_URL` | Endpoint модели | Cloud.ru Foundation Models |
@@ -221,6 +223,8 @@ postgresql+psycopg://USER:PASSWORD@HOST:5432/DATABASE?sslmode=require
 
 7. Добавить Caddy или Nginx перед Streamlit, выпустить TLS-сертификат и не публиковать порт PostgreSQL.
 8. Проверить `/_stcore/health`, вход, загрузку ТЗ и появление объекта в бакете.
+
+В текущем Compose Caddy уже настроен: он слушает `80/443`, автоматически получает TLS-сертификат для `APP_DOMAIN` и проксирует запросы в Streamlit. Для домена должна существовать DNS `A`-запись на публичный IP VM, а группа безопасности Cloud.ru должна разрешать входящий TCP-трафик на `80` и `443`.
 
 ## CI/CD из GitHub в production
 
