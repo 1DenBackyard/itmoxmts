@@ -17,7 +17,7 @@ RUN pip install .
 COPY app.py ./
 COPY .streamlit ./.streamlit
 
-RUN mkdir -p /app/data && chown -R app:app /app
+RUN mkdir -p /app/data/documents && chown -R app:app /app
 USER app
 
 EXPOSE 8080

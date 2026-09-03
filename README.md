@@ -238,13 +238,13 @@ Workflow `.github/workflows/ci.yml` работает так:
 
 | Secret | Содержимое |
 |---|---|
-| `VM_SSH_PRIVATE_KEY` | Отдельный приватный ключ GitHub Actions для входа на VM |
+| `VM_SSH_PRIVATE_KEY_B64` | Отдельный приватный ключ GitHub Actions в однострочном Base64 |
 | `PROD_ENV_FILE` | Полное содержимое production `.env`, включая FM/S3 credentials |
 
 Первичная настройка в GitHub:
 
 1. Открыть **Settings → Secrets and variables → Actions → New repository secret**.
-2. Добавить secrets `VM_SSH_PRIVATE_KEY` и `PROD_ENV_FILE`.
+2. Добавить secrets `VM_SSH_PRIVATE_KEY_B64` и `PROD_ENV_FILE`.
 3. Опционально открыть **Settings → Environments**, создать `production` и включить доступные для тарифа protection rules. Для приватного репозитория на GitHub Free environment secrets и required reviewers могут быть недоступны, поэтому базовая схема использует repository secrets.
 4. Создать Pull Request из рабочей ветки в `main` и дождаться зелёного CI.
 5. Merge Pull Request автоматически запустит production deploy.
@@ -252,6 +252,14 @@ Workflow `.github/workflows/ci.yml` работает так:
 IP, пользователь и каталог VM сейчас зафиксированы в workflow: `176.123.165.124`, `denbackyard`, `/home/denbackyard/net-specguard`. Приложение остаётся привязано к `127.0.0.1:8501`; внешний доступ должен идти через reverse proxy с HTTPS.
 
 Секреты нельзя добавлять в Git, workflow-файлы или логи. Чтобы изменить FM-токен, пароль или S3-ключи, обновите только `PROD_ENV_FILE` в GitHub Environment и повторно запустите workflow.
+
+На macOS значение для `VM_SSH_PRIVATE_KEY_B64` можно скопировать без вывода ключа в терминал:
+
+```bash
+openssl base64 -A -in ~/.ssh/itmoxmts_github_actions | pbcopy
+```
+
+Base64 используется только как безопасный для многострочной вставки формат, а не как шифрование. GitHub Actions декодирует ключ во временный файл runner и проверяет его через `ssh-keygen` перед подключением.
 
 ## Проверки
 
