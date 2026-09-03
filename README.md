@@ -164,7 +164,8 @@ S3_PREFIX=documents
 LLM_ENABLED=true
 LLM_BASE_URL=https://foundation-models.api.cloud.ru/v1
 LLM_API_KEY=replace-me
-LLM_MODEL=ai-sage/GigaChat3-10B-A1.8B
+LLM_MODEL=zai-org/GLM-5.2
+LLM_FALLBACK_MODEL=openai/gpt-oss-120b
 LLM_TIMEOUT_SECONDS=45
 LLM_MAX_RETRIES=0
 ```
@@ -183,7 +184,8 @@ LLM_MAX_RETRIES=0
 | `LLM_ENABLED` | Включить LLM-агентов | `false` |
 | `LLM_BASE_URL` | Endpoint модели | Cloud.ru Foundation Models |
 | `LLM_API_KEY` | API-ключ | пусто |
-| `LLM_MODEL` | ID модели | `ai-sage/GigaChat3-10B-A1.8B` |
+| `LLM_MODEL` | Основная модель | `zai-org/GLM-5.2` |
+| `LLM_FALLBACK_MODEL` | Резервная модель при ошибке основной | `openai/gpt-oss-120b` |
 | `LLM_TIMEOUT_SECONDS` | Максимальное ожидание одного LLM-агента | `45` |
 | `LLM_MAX_RETRIES` | Число повторов зависшего LLM-запроса | `0` |
 | `MAX_DOCUMENT_CHARS` | Лимит текста для MVP | `120000` |
