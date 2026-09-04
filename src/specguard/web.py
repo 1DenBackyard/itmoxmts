@@ -189,6 +189,9 @@ def create_app(repository=None, orchestrator=None, storage=None, *, secure_cooki
         data.update(id=review.id, text=text, warnings=warnings or [])
         for entry, issue in zip(data["issues"], review.issues, strict=True):
             entry["id"] = issue.id
+        # PostgreSQL may return updated rows in a different order. Keep UI indices stable.
+        created = {issue.id: issue.created_at for issue in review.issues}
+        data["issues"].sort(key=lambda entry: (created[entry["id"]], entry["id"]))
         return data
 
     def original_content(review):
