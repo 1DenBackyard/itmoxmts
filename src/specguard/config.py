@@ -6,6 +6,7 @@ from functools import lru_cache
 
 from dotenv import load_dotenv
 
+load_dotenv(".env.providers")
 load_dotenv()
 
 
@@ -25,6 +26,8 @@ class Settings:
     llm_model: str
     max_document_chars: int
     llm_fallback_model: str = ""
+    deepseek_api_key: str = ""
+    deepseek_model: str = "deepseek-v4-flash"
     llm_control_enabled: bool = True
     llm_timeout_seconds: float = 600.0
     llm_max_retries: int = 0
@@ -50,6 +53,8 @@ def get_settings() -> Settings:
         llm_model=os.getenv("LLM_MODEL", "openai/gpt-oss-120b"),
         max_document_chars=int(os.getenv("MAX_DOCUMENT_CHARS", "120000")),
         llm_fallback_model=os.getenv("LLM_FALLBACK_MODEL", ""),
+        deepseek_api_key=os.getenv("DEEPSEEK_API_KEY", ""),
+        deepseek_model=os.getenv("DEEPSEEK_MODEL", "deepseek-v4-flash"),
         llm_control_enabled=_as_bool(os.getenv("LLM_CONTROL_ENABLED"), default=True),
         llm_timeout_seconds=float(os.getenv("LLM_TIMEOUT_SECONDS", "600")),
         llm_max_retries=int(os.getenv("LLM_MAX_RETRIES", "0")),

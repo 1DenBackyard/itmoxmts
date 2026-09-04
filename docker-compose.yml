@@ -2,6 +2,9 @@ services:
   app:
     build: .
     restart: unless-stopped
+    env_file:
+      - path: .env.providers
+        required: false
     ports:
       - "${APP_BIND_ADDRESS:-127.0.0.1}:${APP_PORT:-8501}:8080"
     environment:

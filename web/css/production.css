@@ -74,6 +74,30 @@ input[type=checkbox] {accent-color:var(--mts-red);}
  background:#1a1a1a; color:white; padding:14px 22px; border-radius:12px; max-width:90vw;
  box-shadow:0 8px 30px #0003; font-size:14px;}
 #print-report {display:none;}
+.issue-highlight {background:#fff0a6; color:inherit; padding:1px 0; border-bottom:2px solid #e0b62d;}
+.issue-highlight.selected {background:#ffd6df; border-color:#e40038;}
+.issue-highlight.resolved {background:#eef0f2; border-color:#aeb5bd;}
+.annotation-index {display:inline; border:0; background:transparent; color:#ce0033;
+ font:700 12px/1.2 system-ui,sans-serif; padding:2px; vertical-align:super; cursor:pointer; scroll-margin:100px;}
+.annotation-index.selected {background:#e40038; color:white; border-radius:4px;}
+.annotation-index:focus-visible,.issue-number:focus-visible {outline:2px solid #242424; outline-offset:3px;}
+.selected-issue {outline:2px solid #e40038; outline-offset:-2px;}
+.issue-number {border:0; cursor:pointer; font:inherit;}
+.anchor-note {font:12px/1.4 system-ui,sans-serif; color:#626770; margin:8px 0;}
+#fix-dialog {width:min(760px,calc(100vw - 32px)); max-height:90vh; box-sizing:border-box;
+ border:1px solid #e3e4e7; border-radius:20px; padding:26px; color:#202124;
+ box-shadow:0 24px 100px #0004; overflow:auto;}
+#fix-dialog::backdrop {background:rgba(20,24,32,.42);}
+#fix-dialog h2 {font-size:21px; margin:0 0 8px;}
+.fix-subtitle {color:#626770; margin-top:0;}
+.fix-comparison {display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:18px 0;}
+.fix-comparison section {min-width:0; background:#fafafa; border:1px solid #ddd; border-top:3px solid #aaa; border-radius:10px; padding:12px;}
+.fix-comparison .fix-after {border-top-color:#e40038;}
+.fix-comparison h3,.fix-comparison label {display:block; font-size:14px; margin:0 0 8px; font-weight:700;}
+.fix-comparison pre {white-space:pre-wrap; overflow-wrap:anywhere; font:14px/1.5 monospace; max-height:230px; overflow:auto; margin:0;}
+#fix-after {width:100%; box-sizing:border-box; min-height:130px; font:14px/1.5 monospace; padding:8px; border:1px solid #ddd; border-radius:5px;}
+#fix-context {min-height:65px;}
+@media(max-width:600px) {.fix-comparison {grid-template-columns:1fr;} #fix-dialog {padding:18px;}}
 @media(max-width:1000px) {
  .workspace {grid-template-columns:1fr;}
  .doc-pane {max-height:60vh; min-height:250px;}

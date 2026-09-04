@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+<title id="title">NET SpecGuard — логическая архитектура</title>
+<desc id="desc">Личный кабинет передаёт документ оркестратору. Четыре ревьюера работают параллельно, затем критик и судья проверяют замечания. Автор подтверждает правки и запускает новую проверку. Данные сохраняются в PostgreSQL и local или S3 storage. Внешние модели вызываются через шлюз с резервированием.</desc>
+<defs>
+ <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#8b93a2"/></marker>
+ <marker id="red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#e40038"/></marker>
+ <style>text{font-family:Arial,Helvetica,sans-serif;fill:#202632}.h{font-weight:700;font-size:24px}.b{font-size:20px;fill:#596273}.s{font-size:17px;fill:#697386}.label{font-size:16px;font-weight:700;letter-spacing:2px;fill:#e40038}.line{fill:none;stroke:#8b93a2;stroke-width:2;marker-end:url(#arrow)}.card{fill:white;stroke:#dce1e8;stroke-width:1.5}</style>
+</defs>
+<rect width="1600" height="900" fill="#fff"/>
+<rect x="64" y="56" width="8" height="73" rx="4" fill="#e40038"/>
+<text x="96" y="89" font-size="42" font-weight="700">Сильное ТЗ — до передачи в разработку</text>
+<text x="96" y="124" font-size="22" fill="#697386">NET SpecGuard · мультиагентное ревью и управляемые правки</text>
+<text x="1450" y="88" font-size="22" font-weight="700" fill="#e40038">NET</text>
+<rect x="48" y="168" width="1504" height="377" rx="24" fill="#f5f7fa"/>
+<text x="72" y="200" class="s">КОНТУР ПРИЛОЖЕНИЯ · CLOUD.RU VM · DOCKER COMPOSE</text>
+<!-- Main flow -->
+<rect x="72" y="254" width="264" height="236" rx="16" class="card"/>
+<text x="94" y="285" class="label">01 / ДОКУМЕНТ</text>
+<text x="94" y="326" class="h">Личный кабинет</text>
+<text x="94" y="364" class="b">HTML / CSS / JavaScript</text>
+<text x="94" y="396" class="b">FastAPI · авторизация</text>
+<text x="94" y="444" class="s">Файл или текст ТЗ</text>
+<text x="94" y="468" class="s">PDF · DOCX · TXT · MD</text>
+<path d="M336 368H377" class="line"/>
+<rect x="382" y="279" width="218" height="182" rx="16" fill="#fff0f3" stroke="#ffc8d5"/>
+<text x="402" y="313" class="label">02 / АНАЛИЗ</text>
+<text x="402" y="351" class="h">Оркестратор</text>
+<text x="402" y="388" class="b">Извлечение текста</text>
+<text x="402" y="417" class="b">Фоновые задания</text>
+<text x="655" y="243" class="s">ПАРАЛЛЕЛЬНО</text>
+<path d="M600 369H625V286H648 M625 369V352H648 M625 369V418H648 M625 418V484H648" fill="none" stroke="#8b93a2" stroke-width="2"/>
+<rect x="650" y="258" width="218" height="56" rx="12" class="card"/>
+<rect x="650" y="324" width="218" height="56" rx="12" class="card"/>
+<rect x="650" y="390" width="218" height="56" rx="12" class="card"/>
+<rect x="650" y="456" width="218" height="56" rx="12" class="card"/>
+<text x="673" y="294" class="h">Аналитик</text><text x="673" y="360" class="h">Data Engineer</text>
+<text x="673" y="426" class="h">Архитектор</text><text x="673" y="492" class="h">QA</text>
+<path d="M868 286H897V484H868 M868 352H897 M868 418H897" fill="none" stroke="#8b93a2" stroke-width="2"/>
+<path d="M897 369H924" class="line"/>
+<rect x="930" y="254" width="224" height="236" rx="16" class="card"/>
+<text x="950" y="285" class="label">03 / КОНТРОЛЬ</text>
+<text x="950" y="324" class="h">Критик</text><text x="950" y="352" class="s">Проверяет основания</text>
+<path d="M1042 366V391" class="line"/>
+<text x="950" y="420" class="h">Судья</text><text x="950" y="449" class="s">Дубли и приоритеты</text>
+<path d="M1154 369H1194" class="line"/>
+<rect x="1200" y="254" width="328" height="236" rx="16" fill="#202632"/>
+<text x="1224" y="285" class="label" style="fill:#ff809f">04 / РЕШЕНИЕ АВТОРА</text>
+<text x="1224" y="326" class="h" style="fill:white">Ревью и правки</text>
+<text x="1224" y="364" class="b" style="fill:#e6eaf0">Индексы и точные цитаты</text>
+<text x="1224" y="396" class="b" style="fill:#e6eaf0">Правка «Было → Станет»</text>
+<text x="1224" y="428" class="b" style="fill:#e6eaf0">Подтверждение человеком</text>
+<text x="1224" y="464" class="s" style="fill:#bbc4d2">ИИ не меняет ТЗ автоматически</text>
+<!-- Feedback loop -->
+<path d="M1364 490V580H204V492" fill="none" stroke="#e40038" stroke-width="2" marker-end="url(#red)"/>
+<rect x="520" y="563" width="580" height="34" rx="17" fill="white"/>
+<text x="548" y="587" font-size="19" font-weight="700" style="fill:#ce0033">Правка черновика → новая версия → повторное ревью</text>
+<!-- Supporting services, intentionally separate from host boundary -->
+<text x="72" y="639" class="s">ДАННЫЕ И ОБЩИЕ СЕРВИСЫ</text>
+<rect x="72" y="661" width="448" height="161" rx="16" class="card"/>
+<text x="94" y="698" class="h">Хранение и история</text>
+<text x="94" y="735" class="b">PostgreSQL · пользователи и ревью</text>
+<text x="94" y="765" class="b">Сессии, задачи, решения и текст ТЗ</text>
+<text x="94" y="797" class="s">Оригиналы: local / Cloud.ru Object Storage</text>
+<rect x="544" y="661" width="428" height="161" rx="16" class="card"/>
+<text x="566" y="698" class="h">Персональный прогресс</text>
+<text x="566" y="735" class="b">Только подтверждённые ошибки</text>
+<text x="566" y="765" class="b">Категории и доля исправлений</text>
+<text x="566" y="797" class="s">Решение сотрудника → профиль → чек-лист</text>
+<rect x="996" y="661" width="532" height="161" rx="16" fill="#fff8fa" stroke="#f3c9d3" stroke-dasharray="6 4"/>
+<text x="1018" y="698" class="h">Единый шлюз внешних LLM API</text>
+<text x="1018" y="735" class="b">Основной API → Cloud.ru FM (резерв)</text>
+<text x="1018" y="765" class="b">Для ревью, контроля и предложений правок</text>
+<text x="1018" y="797" class="s">Проверка JSON-контракта · таймауты · fallback</text>
+<text x="72" y="868" class="s">GitHub → CI/CD → Cloud.ru  ·  Документ — данные, а не инструкции агентам</text>
+<text x="1401" y="868" class="s">HLD · 04.09.26</text>
+</svg>

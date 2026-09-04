@@ -85,6 +85,7 @@ jobs:
           ssh "$VM_USER@$VM_HOST" "mkdir -p '$VM_APP_DIR'"
           rsync -az --delete \
             --exclude='.env' \
+            --exclude='.env.providers' \
             --exclude='.git/' \
             --exclude='data/' \
             ./ "$VM_USER@$VM_HOST:$VM_APP_DIR/"

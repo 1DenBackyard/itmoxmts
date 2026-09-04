@@ -18,7 +18,7 @@ def test_empty_object_is_not_a_successful_response(schema):
 @pytest.mark.parametrize("content,reason", [(None, "stop"), ('{"issues": []}', "length")])
 def test_gateway_rejects_empty_or_truncated_generation(content, reason):
     gateway = LLMGateway.__new__(LLMGateway)
-    gateway._settings = make_settings()
+    gateway._settings = make_settings(llm_api_key="test-cloud")
     completion = SimpleNamespace(
         choices=[
             SimpleNamespace(

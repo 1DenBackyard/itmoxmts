@@ -3,7 +3,7 @@
   const U=window.SpecUI, E=U.escape, app=document.getElementById('app');
   const state={user:null,meta:null,page:'login',review:null,history:null,metrics:null,
     text:'',filename:'Техническое задание.txt',uploadId:null,docType:'flow',
-    filter:'open',query:'',edit:false,editText:'',quote:'',job:null,timer:null,checklist:new Set(),busy:false};
+    filter:'open',query:'',edit:false,editText:'',quote:'',selectedId:'',job:null,timer:null,checklist:new Set(),busy:false};
   const types={flow:['Поток данных','Источники, Kafka, обработка и структура потока.'],
     source:['Система-источник','Описание источников и контрактов данных.'],
     mart:['Витрина-агрегат','Маппинг полей, формулы и регламент обновления.']};
@@ -27,7 +27,7 @@
   function reset() {
     clearTimeout(state.timer);
     Object.assign(state,{user:null,page:'login',review:null,history:null,metrics:null,
-      text:'',uploadId:null,job:null,edit:false,busy:false,quote:'',checklist:new Set()});
+      text:'',editText:'',uploadId:null,job:null,edit:false,busy:false,quote:'',selectedId:'',checklist:new Set()});
   }
   function topbar(step=0) {
     return `<div class="topbar"><div class="brand">
@@ -134,17 +134,20 @@
   }
   async function openReview(id) {
     try{state.review=await api('/reviews/'+id);state.page='review';state.edit=false;
-      state.quote='';state.query='';state.filter='open';render();}catch(e){notice(e.message);}
+      state.quote='';state.selectedId='';state.query='';state.filter='open';render();}catch(e){notice(e.message);}
   }
   function issueHtml(i,index) {
     const color={blocker:'red',major:'orange',minor:'yellow',suggestion:'green'}[i.severity]||'orange';
-    return `<article class="comment ${color} ${i.employee_decision!=='open'?'done':''}" id="issue-${E(i.id)}">
-      <div class="meta"><span class="num">${index+1}</span><span>${E(U.severity[i.severity]||i.severity)}</span><span>${E(U.decisions[i.employee_decision])}</span></div>
+    const locations=U.anchors(state.review.text,[i]);
+    return `<article class="comment ${color} ${i.employee_decision!=='open'?'done':''} ${state.selectedId===i.id?'selected-issue':''}" id="issue-${E(i.id)}" tabindex="-1">
+      <div class="meta"><button class="num issue-number" data-locate="${E(i.id)}" aria-label="Найти замечание ${index+1} в документе">${index+1}</button><span>${E(U.severity[i.severity]||i.severity)}</span><span>${E(U.decisions[i.employee_decision])}</span></div>
       <h4>${E(i.title)}</h4><p class="problem">${E(i.problem)}</p>
+      ${!locations.length?'<p class="anchor-note">Нет точной привязки к тексту</p>':locations.some(a=>a.repeated)?'<p class="anchor-note">Цитата повторяется: показано первое совпадение</p>':''}
       <details><summary>Детали и вопросы</summary><p class="muted">${E(i.agent)} · ${E(i.category)}</p>
       <p><strong>Влияние:</strong> ${E(i.impact)}</p><blockquote>${E(i.evidence)}</blockquote>
       <p><strong>Вопрос:</strong> ${E(i.question)}</p><p><strong>Рекомендация:</strong> ${E(i.recommendation)}</p></details>
       <div class="comment-actions"><button class="btn btn-ghost btn-sm" data-locate="${E(i.id)}">Найти в тексте</button>
+      <button class="btn btn-primary btn-sm" data-fix="${E(i.id)}" ${!state.review.text?'disabled':''}>✨ ИИ исправь</button>
       ${i.employee_decision==='open'?`<button class="btn btn-secondary btn-sm" data-decision="accepted" data-id="${E(i.id)}">Принять</button>`:''}
       ${i.employee_decision!=='fixed'?`<button class="btn btn-primary btn-sm" data-decision="fixed" data-id="${E(i.id)}">Исправлено</button>`:''}
       ${i.employee_decision!=='rejected'?`<button class="btn btn-ghost btn-sm" data-decision="rejected" data-id="${E(i.id)}">Отклонить</button>`:''}
@@ -159,7 +162,7 @@
       <button class="btn btn-secondary btn-sm" id="recheck" ${!r.text||state.job?'disabled':''}>Перепроверить</button><button class="btn btn-primary btn-sm" id="summary">К итогу</button>`}</div></div>
       <div class="banner ${r.status.startsWith('Проверка')?'':'neutral'}">${E(r.status)}${r.warnings.length?' · '+E(r.warnings.join('; ')):''}</div>
       <div class="workspace"><div class="doc-pane"><div class="doc-paper"><div class="doc-title">${E(r.document)}</div>
-      ${state.edit?`<textarea id="doc-editor" class="doc-editor" aria-label="Текст ТЗ" maxlength="${state.meta.max_chars}">${E(state.editText)}</textarea>`:U.documentHtml(r.text,state.quote)}</div></div>
+      ${state.edit?`<textarea id="doc-editor" class="doc-editor" aria-label="Текст ТЗ" maxlength="${state.meta.max_chars}">${E(state.editText)}</textarea>`:U.documentHtml(r.text,'',r.issues,state.selectedId)}</div></div>
       <aside class="comments-pane"><div class="comments-head"><div class="comments-head-row"><span>Замечания · ${visible.length}</span><span>${s.fixed}/${s.total} исправлено</span></div>
       <input class="search-input" id="search" aria-label="Поиск замечаний" placeholder="Поиск замечаний" value="${E(state.query)}"></div>
       <div class="comments-filters">${[['critical','Критичные'],['open','Открытые'],['closed','Закрытые'],['all','Все']].map(([key,label])=>`<button class="filter-btn ${state.filter===key?'active':''}" data-filter="${key}">${label}</button>`).join('')}</div>
@@ -178,6 +181,14 @@
     const summary=document.getElementById('summary');if(summary)summary.onclick=()=>{state.page='summary';render();};
   }
   function bindIssues() {
+    document.querySelectorAll('[data-fix]').forEach(b=>b.onclick=()=>openFix(b.dataset.fix));
+    document.querySelectorAll('[data-annotation]').forEach(b=>b.onclick=()=>{
+      const scroll=document.querySelector('.doc-pane').scrollTop;
+      state.selectedId=b.dataset.annotation;state.filter='all';state.query='';render();
+      document.querySelector('.doc-pane').scrollTop=scroll;
+      const card=document.getElementById('issue-'+state.selectedId);
+      if(card){card.querySelector('details').open=true;card.focus({preventScroll:true});card.scrollIntoView({block:'nearest',behavior:'smooth'});}
+    });
     document.querySelectorAll('[data-decision]').forEach(b=>b.onclick=async()=>{
       b.disabled=true;
       try{await api('/issues/'+b.dataset.id+'/decision',{method:'POST',body:{decision:b.dataset.decision}});
@@ -188,11 +199,52 @@
     document.querySelectorAll('[data-locate]').forEach(b=>b.onclick=()=>{
       if(state.edit){notice('Сначала завершите редактирование');return;}
       const issue=state.review.issues.find(i=>i.id===b.dataset.locate);
-      const quotes=issue.evidence.split('\n---\n');
-      const quote=quotes.find(q=>state.review.text?.includes(q));
-      if(!quote){notice('Дословная цитата не найдена в исходном тексте');return;}
-      state.quote=quote;render();document.getElementById('active-quote')?.scrollIntoView({block:'center',behavior:'smooth'});
+      if(!U.anchors(state.review.text,[issue]).length){notice('Дословная цитата не найдена в исходном тексте');return;}
+      state.selectedId=issue.id;render();
+      const anchor=document.getElementById('anchor-'+issue.id);
+      if(anchor){anchor.focus({preventScroll:true});anchor.scrollIntoView({block:'center',behavior:'smooth'});}
     });
+  }
+  let proposalToken=0;
+  async function openFix(issueId) {
+    const r=state.review,issue=r.issues.find(i=>i.id===issueId);
+    const snapshot=state.edit?state.editText:r.text;
+    if(!snapshot)return;
+    const dialog=document.getElementById('fix-dialog');
+    const index=r.issues.indexOf(issue)+1;
+    dialog.onclose=()=>{proposalToken++;};
+    const show=(proposal=null,error='',clarification='',loading=false)=>{
+      dialog.innerHTML=`<h2 id="fix-title">✨ ИИ предлагает правку · №${index}</h2><p class="fix-subtitle">${E(issue.title)}</p>
+        ${loading?'<p role="status">Готовим предложение. Документ пока не изменяется…</p>':''}
+        ${error?`<p class="banner" role="alert">${E(error)}</p>`:''}
+        ${proposal?`<p>${E(proposal.explanation)}</p><div class="fix-comparison"><section><h3>Было</h3><pre>${E(proposal.before||'Фрагмент не найден — дополнение в конец документа')}</pre></section>
+        <section class="fix-after"><label for="fix-after">Станет</label><textarea id="fix-after" ${proposal.needs_input?'disabled':''}>${E(proposal.replacement)}</textarea></section></div>
+        ${proposal.needs_input?`<p class="banner">${E(proposal.question||'Нужно уточнение автора')}</p>`:''}`:''}
+        <label class="field"><span>Уточнение автора (при необходимости)</span><textarea id="fix-context" maxlength="4000" placeholder="Укажите реальные значения или ожидаемое поведение" ${loading?'disabled':''}>${E(clarification)}</textarea></label>
+        <p class="muted">Проверьте предложение: ИИ может ошибаться. Применение меняет только черновик; сохраните его повторной проверкой.</p>
+        <div class="btn-row"><button class="btn btn-primary" id="apply-fix" ${!proposal||proposal.needs_input||loading?'disabled':''}>Применить правку</button>
+        <button class="btn btn-secondary" id="retry-fix" ${loading?'disabled':''}>${proposal?'Уточнить предложение':'Подготовить правку'}</button>
+        <button class="btn btn-ghost" id="cancel-fix">Отмена</button></div>`;
+      document.getElementById('cancel-fix').onclick=()=>dialog.close();
+      document.getElementById('retry-fix').onclick=()=>request(document.getElementById('fix-context').value);
+      document.getElementById('apply-fix').onclick=()=>{
+        try {
+          if(state.review?.id!==r.id)throw new Error('Открыта другая проверка.');
+          const current=state.edit?state.editText:state.review.text;
+          const updated=U.applyProposal(current,snapshot,proposal,document.getElementById('fix-after').value,state.meta.max_chars);
+          dialog.close();state.editText=updated;state.edit=true;state.selectedId=issueId;render();
+          notice('Правка добавлена в черновик. Сохраните и перепроверьте ТЗ.');
+        }catch(e){notice(e.message);}
+      };
+    };
+    const request=async clarification=>{
+      const token=++proposalToken;show(null,'',clarification,true);
+      try {
+        const proposal=await api('/reviews/'+r.id+'/issues/'+issueId+'/suggestion',{method:'POST',body:{text:snapshot,clarification}});
+        if(token===proposalToken&&dialog.open&&state.user)show(proposal,'',clarification);
+      }catch(e){if(token===proposalToken&&dialog.open)show(null,e.message,clarification);}
+    };
+    show();dialog.showModal();request('');
   }
   function download(name,type,content) {
     const url=URL.createObjectURL(new Blob([content],{type}));const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
@@ -242,7 +294,7 @@
     app.innerHTML=`<div class="shell">${topbar()}<section class="card content-card"><h2>Как работает проверка</h2>
       <ol><li>Из файла извлекается полный текст.</li><li>Аналитик, Data Engineer, архитектор и QA проверяют документ параллельно.</li>
       <li>Критик проверяет основания замечаний.</li><li>Судья объединяет дубли и уточняет приоритет.</li><li>Вы принимаете решения; только подтверждённые ошибки попадают в профиль.</li></ol>
-      <p>Модель: ${E(s.model)}</p><p>Критик и судья: ${s.controls?'включены':'выключены'}</p><p>Хранилище: ${E(s.storage)}</p>
+      <p>Инфраструктура приложения: Cloud.ru. Анализ выполняется через внешние API моделей.</p><p>Критик и судья: ${s.controls?'включены':'выключены'}</p><p>Хранилище: ${E(s.storage)}</p>
       ${!s.configured?'<div class="banner">Модель не настроена. Анализ недоступен.</div>':''}
       <p class="muted">Результат ИИ — предварительное ревью, не гарантия отсутствия дефектов.</p></section></div>`;bindNav();
   }
