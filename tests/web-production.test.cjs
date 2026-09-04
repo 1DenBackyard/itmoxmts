@@ -6,6 +6,15 @@ const path=require('node:path');
 const context={};vm.createContext(context);
 vm.runInContext(fs.readFileSync(path.join(__dirname,'../web/js/core.js'),'utf8'),context);
 const U=context.SpecUI;
+test('applying a fix is explicit, literal, bounded and snapshot-safe',()=>{
+  const p={mode:'replace',before:'old',needs_input:false};
+  assert.equal(U.applyProposal('old text','old text',p,'new $&'),'new $& text');
+  assert.throws(()=>U.applyProposal('changed','old text',p,'new'));
+  assert.throws(()=>U.applyProposal('old old','old old',p,'new'));
+  assert.throws(()=>U.applyProposal('old','old',{...p,needs_input:true},'new'));
+  assert.throws(()=>U.applyProposal('old','old',p,'too long',3));
+  assert.equal(U.applyProposal('text','text',{mode:'append',needs_input:false},'Added'),'text\n\nAdded');
+});
 const issue=(id,evidence)=>({id,evidence,severity:'major',employee_decision:'open'});
 test('stable issue numbers annotate overlapping quotes without losing tables',()=>{
   const text='Шаг 1. Фильтрация\nПоле | Тип\nid | string\nКонец';

@@ -12,7 +12,7 @@ import time
 import uuid
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from pathlib import Path
 from urllib.parse import quote
 
@@ -28,6 +28,8 @@ from specguard.config import get_settings
 from specguard.database import get_repository
 from specguard.documents import DocumentExtractionError, extract_text
 from specguard.review import ReviewOrchestrator
+from specguard.review.fixes import propose_fix
+from specguard.review.llm import LLMGateway
 from specguard.storage import DocumentStorageError, StoredDocument, create_document_storage
 from specguard.ui import CASEHOLDER_CHECKLIST, export_review
 
@@ -86,6 +88,11 @@ class DecisionInput(BaseModel):
     decision: str
 
 
+class FixInput(BaseModel):
+    text: str = Field(min_length=1, max_length=120000)
+    clarification: str = Field(default="", max_length=4000)
+
+
 async def body_bytes(request: Request, limit: int) -> bytes:
     data = bytearray()
     async for chunk in request.stream():
@@ -115,6 +122,7 @@ def create_app(repository=None, orchestrator=None, storage=None, *, secure_cooki
     pool = ThreadPoolExecutor(max_workers=2, thread_name_prefix="review-job")
     lock = threading.Lock()
     attempts: dict[str, list[float]] = {}
+    fixing: set[str] = set()
 
     @asynccontextmanager
     async def lifespan(app):
@@ -442,6 +450,36 @@ def create_app(repository=None, orchestrator=None, storage=None, *, secure_cooki
         if not repo.set_issue_decision(issue_id, auth.user_id, values.decision):
             raise HTTPException(404, "Замечание не найдено")
         return {"ok": True}
+
+    @app.post("/api/reviews/{review_id}/issues/{issue_id}/suggestion")
+    async def suggestion(review_id: str, issue_id: str, request: Request, auth=Depends(session)):
+        values = await payload(request, FixInput, 800000)
+        review = repo.get_review(review_id, auth.user_id)
+        issue = next((i for i in review.issues if i.id == issue_id), None) if review else None
+        if not issue:
+            raise HTTPException(404, "Замечание не найдено")
+        if len(values.text) > settings.max_document_chars:
+            raise HTTPException(422, "Текст превышает лимит")
+        if not settings.llm_enabled or not (settings.deepseek_api_key or settings.llm_api_key):
+            raise HTTPException(503, "Модель не настроена")
+        with lock:
+            if auth.user_id in fixing or len(fixing) >= 2:
+                raise HTTPException(429, "Подготовка правки уже выполняется. Попробуйте позже")
+            fixing.add(auth.user_id)
+        try:
+            gateway = LLMGateway(
+                replace(settings, llm_timeout_seconds=min(settings.llm_timeout_seconds, 120))
+            )
+            result = await run_in_threadpool(
+                propose_fix, gateway, values.text, issue, values.clarification
+            )
+            return {**result, "review_id": review_id, "issue_id": issue_id}
+        except Exception as exc:
+            logger.error("Fix proposal failed type=%s", type(exc).__name__)
+            raise HTTPException(502, "Не удалось подготовить правку. Документ не изменён") from exc
+        finally:
+            with lock:
+                fixing.discard(auth.user_id)
 
     @app.get("/api/progress")
     def progress(auth=Depends(session)):

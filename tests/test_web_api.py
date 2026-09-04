@@ -1,6 +1,7 @@
 import threading
 import time
 from contextlib import contextmanager
+from dataclasses import replace
 
 import pytest
 from conftest import make_issue
@@ -10,6 +11,48 @@ from specguard.database import Repository
 from specguard.review.schemas import ReviewResult
 from specguard.storage import LocalDocumentStorage
 from specguard.web import COOKIE, WebJob, create_app
+
+
+def test_fix_proposal_authorization_and_no_mutation(repo, tmp_path, monkeypatch):
+    import specguard.web as web
+
+    settings = web.get_settings()
+    monkeypatch.setattr(
+        web,
+        "get_settings",
+        lambda: replace(settings, llm_enabled=True, llm_api_key="fake", deepseek_api_key=""),
+    )
+    calls = []
+
+    def fake_proposal(gateway, text, issue, clarification):
+        calls.append((text, clarification))
+        return {
+            "before": text,
+            "replacement": "new",
+            "needs_input": False,
+            "mode": "replace",
+            "explanation": "test",
+            "question": "",
+        }
+
+    monkeypatch.setattr(web, "propose_fix", fake_proposal)
+    with client_for(repo, tmp_path) as client:
+        login(client)
+        job = client.post("/api/reviews", json={"text": "old"}).json()
+        rid = wait_job(client, job["id"])["review_id"]
+        original = client.get("/api/reviews/" + rid).json()
+        iid = original["issues"][0]["id"]
+        path = f"/api/reviews/{rid}/issues/{iid}/suggestion"
+        assert (
+            client.post(path, json={"text": "old"}, headers={"X-CSRF-Token": "bad"}).status_code
+            == 403
+        )
+        assert client.post(path, json={"text": "old", "clarification": "int"}).status_code == 200
+        assert calls == [("old", "int")]
+        assert client.get("/api/reviews/" + rid).json() == original
+        login(client, "engineer@example.com")
+        assert client.post(path, json={"text": "old"}).status_code == 404
+        assert len(calls) == 1
 
 
 class Reviewer:

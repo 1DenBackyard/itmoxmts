@@ -40,6 +40,15 @@ NET SpecGuard — прототип мультиагентной системы �
 
 ## Логическая архитектура
 
+![Логическая архитектура NET SpecGuard](web/assets/architecture.svg)
+
+[SVG для презентации, 1600×900](web/assets/architecture.svg) · [PNG](web/assets/architecture.png) ·
+Внешний основной API — DeepSeek, резервный — Cloud.ru FM. Провайдеры абстрагированы на HLD;
+это не означает, что обработка происходит только внутри Cloud.ru.
+
+<details>
+<summary>Текстовая схема компонентов</summary>
+
 ```mermaid
 flowchart LR
     USER["Сотрудник"] --> LK["Личный кабинет<br/>HTML / CSS / JS + FastAPI"]
@@ -66,6 +75,8 @@ flowchart LR
     HISTORY --> PROFILE["Персональные<br/>рекомендации"]
     PROFILE --> LK
 ```
+
+</details>
 
 ## Агенты
 

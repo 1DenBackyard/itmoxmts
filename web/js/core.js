@@ -82,5 +82,18 @@
     } flush(); return out;
   }
   const template = title => `${title}\n\nОбщие сведения\n\nРешаемая проблема\n\nПродуктовые метрики\n\nЗаказчики\n\nНефункциональные требования\n\nСистемы-источники\n\nData Catalog\n\nИсходники проекта\n\nКоманда\n\nJIRA\n\nИсточники данных\nОписание | Тип источника | Ссылка | Сериализация\n\nИсточники обогащения данных\n\nПриемники данных\nОписание | Кластер | Ссылка на Каталог | Сериализация\n\nСхема потоков данных\n\nАлгоритм обработки потока\n\nШаг 1. Фильтрация данных\n\nШаг 2. Обогащение данных\n\nШаг 3. Преобразования\n\nФормирование ключа Kafka / партиции HDFS\n\nСтруктура данных\nАтрибут | Тип | NULL / NOT NULL | Описание | Источник | Исходный атрибут | Формула\n\nПример данных\n\nDDL\n\nFAQ\n\nИстория изменений\n`;
-  globalThis.SpecUI = {escape,severity,decisions,filter,stats,anchors,documentHtml,template};
+  function applyProposal(text, snapshot, proposal, replacement, limit=120000) {
+    if(text!==snapshot) throw new Error('Текст изменился. Запросите правку заново.');
+    if(proposal.needs_input || !replacement.trim()) throw new Error('Сначала уточните недостающие данные.');
+    let updated;
+    if(proposal.mode==='replace') {
+      const before=proposal.before,at=text.indexOf(before);
+      if(!before || at<0 || text.indexOf(before,at+1)>=0) throw new Error('Место замены неоднозначно. Используйте редактор.');
+      updated=text.slice(0,at)+replacement+text.slice(at+before.length);
+    } else if(proposal.mode==='append') updated=text+'\n\n'+replacement;
+    else throw new Error('Автоматическая замена недоступна.');
+    if(updated.length>limit) throw new Error('После правки текст превышает лимит.');
+    return updated;
+  }
+  globalThis.SpecUI = {escape,severity,decisions,filter,stats,anchors,documentHtml,template,applyProposal};
 })();
