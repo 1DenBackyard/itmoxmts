@@ -52,6 +52,14 @@ def propose_fix(gateway: LLMGateway, text: str, issue, clarification: str = "") 
         schema_name="fix_response",
         schema=FixResponse,
     )
+    if result.needs_input:
+        result = result.model_copy(
+            update={
+                "replacement": "",
+                "question": result.question.strip()
+                or "Уточните недостающие данные у владельца требования.",
+            }
+        )
     if not result.needs_input and (not result.replacement.strip() or result.replacement == before):
         raise ValueError("Модель не предложила содержательную правку")
     return {**result.model_dump(), "before": before, "mode": "replace" if before else "append"}

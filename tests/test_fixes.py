@@ -53,6 +53,24 @@ def test_missing_data_returns_question_not_invented_value():
     assert result["needs_input"] and not result["replacement"]
 
 
+def test_clarification_never_exposes_a_speculative_replacement():
+    result = propose_fix(
+        FakeGateway(
+            FixResponse(
+                replacement="CLUSTER_GUESSED",
+                explanation="Данных нет",
+                needs_input=True,
+                question="",
+            )
+        ),
+        "Описание",
+        issue("нет"),
+    )
+    assert result["needs_input"]
+    assert result["replacement"] == ""
+    assert result["question"]
+
+
 def test_empty_success_is_rejected():
     with pytest.raises(ValueError):
         propose_fix(
