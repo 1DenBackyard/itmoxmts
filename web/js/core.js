@@ -5,12 +5,13 @@
   const severity = {blocker:'Блокирующее',major:'Существенное',minor:'Незначительное',suggestion:'Рекомендация'};
   const decisions = {open:'Открыто',accepted:'Принято',fixed:'Исправлено',rejected:'Отклонено'};
   const ranks = {blocker:0,major:1,minor:2,suggestion:3};
-  function filter(issues, mode, query='') {
+  function filter(issues, mode, query='', level='all') {
     return [...issues].filter(i => (mode === 'all' ||
       (mode === 'open' && i.employee_decision === 'open') ||
       (mode === 'closed' && i.employee_decision !== 'open') ||
       (mode === 'critical' && ['blocker','major'].includes(i.severity) && i.employee_decision === 'open')) &&
-      `${i.title} ${i.problem} ${i.category}`.toLowerCase().includes(query.toLowerCase()))
+      (level === 'all' || i.severity === level) &&
+      `${severity[i.severity] || ''} ${i.title} ${i.problem} ${i.category}`.toLowerCase().includes(query.toLowerCase()))
       .sort((a,b) => (ranks[a.severity] ?? 9) - (ranks[b.severity] ?? 9));
   }
   function stats(issues) {

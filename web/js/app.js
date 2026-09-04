@@ -3,7 +3,7 @@
   const U=window.SpecUI, E=U.escape, app=document.getElementById('app');
   const state={user:null,meta:null,page:'login',review:null,history:null,metrics:null,
     text:'',filename:'Техническое задание.txt',uploadId:null,docType:'flow',
-    filter:'open',query:'',edit:false,editText:'',quote:'',selectedId:'',job:null,timer:null,checklist:new Set(),busy:false};
+    filter:'open',severity:'all',query:'',edit:false,editText:'',quote:'',selectedId:'',job:null,timer:null,checklist:new Set(),busy:false};
   const types={flow:['Поток данных','Источники, Kafka, обработка и структура потока.'],
     source:['Система-источник','Описание источников и контрактов данных.'],
     mart:['Витрина-агрегат','Маппинг полей, формулы и регламент обновления.']};
@@ -134,7 +134,7 @@
   }
   async function openReview(id) {
     try{state.review=await api('/reviews/'+id);state.page='review';state.edit=false;
-      state.quote='';state.selectedId='';state.query='';state.filter='open';render();}catch(e){notice(e.message);}
+      state.quote='';state.selectedId='';state.query='';state.filter='open';state.severity='all';render();}catch(e){notice(e.message);}
   }
   function issueHtml(i,index) {
     const color={blocker:'red',major:'orange',minor:'yellow',suggestion:'green'}[i.severity]||'orange';
@@ -154,7 +154,7 @@
       ${i.employee_decision!=='open'?`<button class="btn btn-ghost btn-sm" data-decision="open" data-id="${E(i.id)}">Вернуть</button>`:''}</div></article>`;
   }
   function review() {
-    const r=state.review,s=U.stats(r.issues),visible=U.filter(r.issues,state.filter,state.query);
+    const r=state.review,s=U.stats(r.issues),visible=U.filter(r.issues,state.filter,state.query,state.severity);
     app.innerHTML=`<div class="review-shell">${topbar(2)}<div class="statusbar"><div class="status-left">
       <span class="chip">${E(r.document)}</span><span class="chip critical">${s.critical} критичных</span><span class="chip">${s.open} открыто</span><span class="chip ok">${s.confirmed} подтверждено</span></div>
       <div class="status-actions">${state.edit?'<button class="btn btn-primary btn-sm" id="save-recheck">Сохранить и перепроверить</button><button class="btn btn-secondary btn-sm" id="cancel-edit">Отмена</button>':
@@ -163,15 +163,17 @@
       <div class="banner ${r.status.startsWith('Проверка')?'':'neutral'}">${E(r.status)}${r.warnings.length?' · '+E(r.warnings.join('; ')):''}</div>
       <div class="workspace"><div class="doc-pane"><div class="doc-paper"><div class="doc-title">${E(r.document)}</div>
       ${state.edit?`<textarea id="doc-editor" class="doc-editor" aria-label="Текст ТЗ" maxlength="${state.meta.max_chars}">${E(state.editText)}</textarea>`:U.documentHtml(r.text,'',r.issues,state.selectedId)}</div></div>
-      <aside class="comments-pane"><div class="comments-head"><div class="comments-head-row"><span>Замечания · ${visible.length}</span><span>${s.fixed}/${s.total} исправлено</span></div>
+      <aside class="comments-pane"><div class="comments-head"><div class="comments-head-row"><span id="visible-count">Замечания · ${visible.length} из ${s.total}</span><span>${s.fixed}/${s.total} исправлено</span></div>
       <input class="search-input" id="search" aria-label="Поиск замечаний" placeholder="Поиск замечаний" value="${E(state.query)}"></div>
-      <div class="comments-filters">${[['critical','Критичные'],['open','Открытые'],['closed','Закрытые'],['all','Все']].map(([key,label])=>`<button class="filter-btn ${state.filter===key?'active':''}" data-filter="${key}">${label}</button>`).join('')}</div>
+      <div class="comments-filters">${[['open','Открытые'],['closed','Закрытые'],['all','Все статусы']].map(([key,label])=>`<button class="filter-btn ${state.filter===key?'active':''}" aria-pressed="${state.filter===key}" data-filter="${key}">${label}</button>`).join('')}</div>
+      <div class="comments-filters">${[['all','Все уровни'],['blocker','Блокирующие'],['major','Существенные'],['minor','Незначительные'],['suggestion','Рекомендации']].map(([key,label])=>`<button class="filter-btn ${state.severity===key?'active':''}" aria-pressed="${state.severity===key}" data-severity="${key}">${label}</button>`).join('')}</div>
       <div class="comments-list" id="comments-list">${visible.length?visible.map(i=>issueHtml(i,r.issues.indexOf(i))).join(''):'<p class="muted" style="padding:16px">В этом фильтре замечаний нет.</p>'}</div></aside></div>
       <p class="muted">Решения относятся к исходному ревью. После правок запустите новую проверку. Рекомендации ИИ требуют подтверждения автором.</p></div>`;
     bindNav();bindIssues();
     document.querySelectorAll('[data-filter]').forEach(b=>b.onclick=()=>{state.filter=b.dataset.filter;render();});
+    document.querySelectorAll('[data-severity]').forEach(b=>b.onclick=()=>{state.severity=b.dataset.severity;render();});
     document.getElementById('search').oninput=e=>{
-      state.query=e.target.value;document.getElementById('comments-list').innerHTML=U.filter(r.issues,state.filter,state.query).map(i=>issueHtml(i,r.issues.indexOf(i))).join('')||'<p class="muted">Ничего не найдено</p>';bindIssues();
+      state.query=e.target.value;const matches=U.filter(r.issues,state.filter,state.query,state.severity);document.getElementById('visible-count').textContent=`Замечания · ${matches.length} из ${s.total}`;document.getElementById('comments-list').innerHTML=matches.map(i=>issueHtml(i,r.issues.indexOf(i))).join('')||'<p class="muted">Ничего не найдено</p>';bindIssues();
     };
     const edit=document.getElementById('edit');if(edit)edit.onclick=()=>{state.edit=true;state.editText=r.text;render();};
     const editor=document.getElementById('doc-editor');if(editor)editor.oninput=e=>{state.editText=e.target.value;};
@@ -184,7 +186,7 @@
     document.querySelectorAll('[data-fix]').forEach(b=>b.onclick=()=>openFix(b.dataset.fix));
     document.querySelectorAll('[data-annotation]').forEach(b=>b.onclick=()=>{
       const scroll=document.querySelector('.doc-pane').scrollTop;
-      state.selectedId=b.dataset.annotation;state.filter='all';state.query='';render();
+      state.selectedId=b.dataset.annotation;state.filter='all';state.severity='all';state.query='';render();
       document.querySelector('.doc-pane').scrollTop=scroll;
       const card=document.getElementById('issue-'+state.selectedId);
       if(card){card.querySelector('details').open=true;card.focus({preventScroll:true});card.scrollIntoView({block:'nearest',behavior:'smooth'});}

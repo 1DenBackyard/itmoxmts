@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import logging
 import time
+from collections.abc import Callable
 from typing import TypeVar
 
 from openai import OpenAI
@@ -71,6 +72,7 @@ class LLMGateway:
         user: str,
         schema_name: str,
         schema: type[ResponseT],
+        validate: Callable[[ResponseT], None] | None = None,
     ) -> ResponseT:
         last_error: Exception | None = None
         targets = []
@@ -113,6 +115,8 @@ class LLMGateway:
                     raise ValueError("Модель не вернула завершённый структурированный ответ")
                 payload = choice.message.content
                 result = schema.model_validate(json.loads(payload))
+                if validate is not None:
+                    validate(result)
                 logger.info(
                     "LLM call completed schema=%s model=%s seconds=%.1f",
                     schema_name,
@@ -188,6 +192,13 @@ class CloudRuEvidenceCritic:
         if not issues:
             return []
 
+        def validate(result: CriticResponse) -> None:
+            expected = {f"i{index}" for index in range(1, len(issues) + 1)}
+            if {v.issue_id for v in result.verdicts} != expected or len(result.verdicts) != len(
+                issues
+            ):
+                raise ValueError("Критик должен вынести ровно один вердикт по каждому замечанию")
+
         result = self._gateway.structured(
             system=prompts.CRITIC_SYSTEM_PROMPT,
             user=(
@@ -196,6 +207,7 @@ class CloudRuEvidenceCritic:
             ),
             schema_name="critic_response",
             schema=CriticResponse,
+            validate=validate,
         )
 
         verdicts = {verdict.issue_id: verdict for verdict in result.verdicts}
@@ -232,11 +244,27 @@ class CloudRuIssueJudge:
         if not issues:
             return issues
 
+        def validate(result: JudgeResponse) -> None:
+            expected = {f"i{index}" for index in range(1, len(issues) + 1)}
+            if {d.issue_id for d in result.decisions} != expected or len(result.decisions) != len(
+                issues
+            ):
+                raise ValueError("Судья должен вынести ровно одно решение по каждому замечанию")
+            kept = {d.issue_id for d in result.decisions if d.keep}
+            for decision in result.decisions:
+                if (
+                    not decision.keep
+                    and decision.duplicate_of
+                    and decision.duplicate_of not in kept
+                ):
+                    raise ValueError("Ссылка на дубль должна вести к оставленному замечанию")
+
         result = self._gateway.structured(
             system=prompts.JUDGE_SYSTEM_PROMPT,
             user=f"Замечания на сведение:\n\n{_issues_payload(issues, with_evidence=False)}",
             schema_name="judge_response",
             schema=JudgeResponse,
+            validate=validate,
         )
 
         decisions = {decision.issue_id: decision for decision in result.decisions}

@@ -25,11 +25,15 @@ class FakeGateway:
         self.responses = list(responses)
         self.calls: list[dict[str, str]] = []
 
-    def structured(self, *, system: str, user: str, schema_name: str, schema: type) -> object:
+    def structured(
+        self, *, system: str, user: str, schema_name: str, schema: type, validate=None
+    ) -> object:
         self.calls.append({"system": system, "user": user, "schema_name": schema_name})
         response = self.responses.pop(0)
         if isinstance(response, Exception):
             raise response
+        if validate:
+            validate(response)
         return response
 
 

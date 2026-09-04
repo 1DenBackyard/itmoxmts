@@ -1,3 +1,4 @@
+import json
 from dataclasses import replace
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
@@ -7,6 +8,25 @@ from conftest import make_settings
 
 from specguard.review.llm import LLMGateway, cloud_control_agents, cloud_reviewers
 from specguard.review.schemas import AgentResponse
+
+
+@pytest.mark.parametrize(
+    "invalid", [[], [{"issue_id": "i1", "keep": False, "severity": "major", "duplicate_of": "i1"}]]
+)
+def test_judge_semantic_failure_uses_fallback(invalid):
+    from conftest import make_issue
+
+    from specguard.review.llm import CloudRuIssueJudge
+
+    good = [{"issue_id": "i1", "keep": True, "severity": "major"}]
+    cloud = client(response(json.dumps({"decisions": good})))
+    primary = client(response(json.dumps({"decisions": invalid})))
+    with patch("specguard.review.llm.OpenAI", side_effect=[cloud, primary]):
+        gateway = LLMGateway(
+            replace(make_settings(llm_api_key="cloud"), deepseek_api_key="primary")
+        )
+    assert len(CloudRuIssueJudge(gateway).arbitrate([make_issue()])) == 1
+    assert cloud.chat.completions.create.call_count == 1
 
 
 def response(content='{"issues": []}', reason="stop"):

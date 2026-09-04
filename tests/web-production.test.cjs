@@ -6,6 +6,16 @@ const path=require('node:path');
 const context={};vm.createContext(context);
 vm.runInContext(fs.readFileSync(path.join(__dirname,'../web/js/core.js'),'utf8'),context);
 const U=context.SpecUI;
+test('severity filters combine with status and search, without renumbering',()=>{
+  const issues=['blocker','major','minor','suggestion'].flatMap((severity,n)=>
+    ['open','fixed'].map((employee_decision,j)=>({id:`${n}-${j}`,severity,employee_decision,title:'storage'})));
+  assert.equal(U.filter(issues,'open','','blocker').length,1);
+  assert.equal(U.filter(issues,'all','','major').length,2);
+  assert.equal(U.filter(issues,'closed','storage','major')[0].id,'1-1');
+  assert.equal(U.filter(issues,'open','Блокирующее','all').length,1);
+  assert.equal(U.filter(issues,'open','absent','major').length,0);
+  assert.equal(issues[2].id,'1-0');
+});
 test('applying a fix is explicit, literal, bounded and snapshot-safe',()=>{
   const p={mode:'replace',before:'old',needs_input:false};
   assert.equal(U.applyProposal('old text','old text',p,'new $&'),'new $& text');
