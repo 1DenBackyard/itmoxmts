@@ -98,8 +98,11 @@ SHARED_REVIEWER_RULES = f"""Ты — старший ревьюер технич�
 
 ФОРМАТ ОТВЕТА
 Верни JSON по схеме review_response. Для каждого замечания заполни:
-- category — машинный код на латинице в snake_case, например
-  logical_contradiction, missing_field_contract, missing_edge_case;
+- category — выбери один наиболее точный машинный код из фиксированного списка:
+  logical_contradiction, load_strategy, data_contract, schema, data_quality,
+  source, target, business_rules, edge_cases, performance, reliability,
+  monitoring, security, testing, terminology, non_functional. Не своди разные
+  классы дефектов к одной общей категории и не придумывай новые коды;
 - title — суть дефекта одной строкой до 90 символов, без цитат;
 - problem — что именно не так в документе;
 - impact — что произойдёт при реализации ровно так, как написано;

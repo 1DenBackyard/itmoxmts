@@ -6,6 +6,14 @@ const path=require('node:path');
 const context={};vm.createContext(context);
 vm.runInContext(fs.readFileSync(path.join(__dirname,'../web/js/core.js'),'utf8'),context);
 const U=context.SpecUI;
+test('progress donut contains exact counts, shares and readable labels',()=>{
+  const chart=U.donut({load_strategy:3,security:1,empty:0});
+  assert.equal(chart.total,4);
+  assert.equal(chart.entries[0].label,'Стратегия загрузки');
+  assert.equal(chart.entries[0].count,3);
+  assert.equal(Math.round(chart.entries[0].percent),75);
+  assert.equal(chart.entries[1].end,100);
+});
 test('severity filters combine with status and search, without renumbering',()=>{
   const issues=['blocker','major','minor','suggestion'].flatMap((severity,n)=>
     ['open','fixed'].map((employee_decision,j)=>({id:`${n}-${j}`,severity,employee_decision,title:'storage'})));
@@ -75,4 +83,8 @@ test('production HTML never loads demo evaluation or demo datasets',()=>{
   const app=fs.readFileSync(path.join(__dirname,'../web/js/app.js'),'utf8');
   assert.ok(!app.includes('dataset.json'));
   assert.ok(app.includes("api('/reviews'"));
+  assert.ok(app.includes('Загрузить готовое ТЗ'));
+  assert.ok(app.includes('state.summaryText=state.editText'));
+  assert.ok(app.includes('U.documentHtml(reportText'));
+  assert.ok(app.includes("value=\"${state.meta?.demo?'analyst@example.com':''}\""));
 });

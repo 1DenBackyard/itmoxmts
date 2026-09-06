@@ -5,6 +5,27 @@
   const severity = {blocker:'Блокирующее',major:'Существенное',minor:'Незначительное',suggestion:'Рекомендация'};
   const decisions = {open:'Открыто',accepted:'Принято',fixed:'Исправлено',rejected:'Отклонено'};
   const ranks = {blocker:0,major:1,minor:2,suggestion:3};
+  const categoryLabels = {
+    load_strategy:'Стратегия загрузки', data_contract:'Контракт данных', schema:'Структура данных',
+    data_quality:'Качество данных', source:'Источники', target:'Приёмники', performance:'Производительность',
+    security:'Безопасность', reliability:'Надёжность', monitoring:'Мониторинг', testing:'Тестирование',
+    edge_cases:'Граничные случаи', terminology:'Термины', consistency:'Противоречия',
+    non_functional:'Нефункциональные требования', business_rules:'Бизнес-правила'
+  };
+  function categoryLabel(value) {
+    return categoryLabels[value] || String(value||'Другое').replaceAll('_',' ');
+  }
+  function donut(categories) {
+    const entries=Object.entries(categories||{}).filter(([,count])=>Number(count)>0)
+      .sort((a,b)=>b[1]-a[1]);
+    const total=entries.reduce((sum,[,count])=>sum+Number(count),0);
+    let offset=0;
+    const colors=['#ff0032','#ff7a00','#8b5cf6','#0077ff','#00a86b','#e0aa00','#64748b','#db2777'];
+    return {total,entries:entries.map(([name,count],index)=>{
+      const percent=total?Number(count)/total*100:0,start=offset;offset+=percent;
+      return {name,label:categoryLabel(name),count:Number(count),percent,start,end:offset,color:colors[index%colors.length]};
+    })};
+  }
   function filter(issues, mode, query='', level='all') {
     return [...issues].filter(i => (mode === 'all' ||
       (mode === 'open' && i.employee_decision === 'open') ||
@@ -96,5 +117,5 @@
     if(updated.length>limit) throw new Error('После правки текст превышает лимит.');
     return updated;
   }
-  globalThis.SpecUI = {escape,severity,decisions,filter,stats,anchors,documentHtml,template,applyProposal};
+  globalThis.SpecUI = {escape,severity,decisions,filter,stats,anchors,documentHtml,template,applyProposal,categoryLabel,donut};
 })();

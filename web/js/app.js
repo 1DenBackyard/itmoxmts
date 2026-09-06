@@ -3,7 +3,7 @@
   const U=window.SpecUI, E=U.escape, app=document.getElementById('app');
   const state={user:null,meta:null,page:'login',review:null,history:null,metrics:null,
     text:'',filename:'Техническое задание.txt',uploadId:null,docType:'flow',
-    filter:'open',severity:'all',query:'',edit:false,editText:'',quote:'',selectedId:'',job:null,timer:null,checklist:new Set(),busy:false};
+    filter:'open',severity:'all',query:'',edit:false,editText:'',summaryText:null,quote:'',selectedId:'',job:null,timer:null,checklist:new Set(),busy:false};
   const types={flow:['Поток данных','Источники, Kafka, обработка и структура потока.'],
     source:['Система-источник','Описание источников и контрактов данных.'],
     mart:['Витрина-агрегат','Маппинг полей, формулы и регламент обновления.']};
@@ -27,7 +27,7 @@
   function reset() {
     clearTimeout(state.timer);
     Object.assign(state,{user:null,page:'login',review:null,history:null,metrics:null,
-      text:'',editText:'',uploadId:null,job:null,edit:false,busy:false,quote:'',selectedId:'',checklist:new Set()});
+      text:'',editText:'',summaryText:null,uploadId:null,job:null,edit:false,busy:false,quote:'',selectedId:'',checklist:new Set()});
   }
   function topbar(step=0) {
     return `<div class="topbar"><div class="brand">
@@ -58,8 +58,8 @@
     app.innerHTML=`<div class="shell">${topbar()}<section class="card login-card">
       <div class="eyebrow">Личный кабинет</div><h2>Войти в SpecGuard</h2>
       <p>Проверяйте ТЗ и сохраняйте результаты в своём профиле.</p>
-      <form id="login-form"><label class="field"><span>Корпоративная почта</span><input name="email" type="email" autocomplete="username" required></label>
-      <label class="field"><span>Пароль</span><input name="password" type="password" autocomplete="current-password" required></label>
+      <form id="login-form"><label class="field"><span>Корпоративная почта</span><input name="email" type="email" autocomplete="username" value="${state.meta?.demo?'analyst@example.com':''}" required></label>
+      <label class="field"><span>Пароль</span><input name="password" type="password" autocomplete="current-password" value="${state.meta?.demo?'demo1234':''}" required></label>
       <button class="btn btn-primary full" type="submit">Войти</button></form>
       ${state.meta?.demo?'<p class="login-note">Демо: analyst@example.com / demo1234</p>':''}</section></div>`;
     document.getElementById('login-form').onsubmit=async e=>{
@@ -76,7 +76,7 @@
       ${state.job?'<div class="banner">Проверка уже выполняется. <button class="btn btn-secondary btn-sm" id="resume-job">Открыть статус</button></div>':''}
       <h3 class="section-label">Шаблон для нового черновика</h3><div class="type-grid">
       ${Object.entries(types).map(([key,[title,desc]])=>`<button class="type-card ${key===state.docType?'selected':''}" data-type="${key}"><strong>${title}</strong><span>${desc}</span></button>`).join('')}</div>
-      <div class="btn-row"><button class="btn btn-secondary" id="template">Вставить шаблон</button></div>
+      <div class="btn-row"><button class="btn btn-secondary" id="template">Вставить шаблон</button><button class="btn btn-secondary" id="ready">Загрузить готовое ТЗ</button></div>
       <div class="upload-box"><label for="file">Или загрузите своё ТЗ</label><input type="file" id="file" accept=".pdf,.docx,.txt,.md" ${state.busy?'disabled':''}>
       <p>PDF с текстовым слоем, DOCX, TXT, Markdown · до 20 МБ · OCR сканов пока недоступен</p></div>
       <label class="field"><span>Название документа</span><input id="filename" maxlength="255" value="${E(state.filename)}"></label>
@@ -91,6 +91,7 @@
       if(state.text.trim()&&!confirm('Заменить введённый текст пустым шаблоном?'))return;
       state.text=U.template(types[state.docType][0]);state.uploadId=null;render();
     };
+    document.getElementById('ready').onclick=openReadyDocuments;
     document.getElementById('file').onchange=async e=>{
       const file=e.target.files[0];if(!file)return;
       if(file.size>state.meta.max_upload){notice('Максимальный размер файла — 20 МБ');return;}
@@ -101,6 +102,22 @@
     };
     document.getElementById('start-review').onclick=()=>launch(state.text,state.filename,state.uploadId);
     const resume=document.getElementById('resume-job');if(resume)resume.onclick=()=>{state.page='busy';render();};
+  }
+  async function openReadyDocuments() {
+    const dialog=document.getElementById('ready-dialog');
+    dialog.innerHTML='<div class="dialog-card"><h2 id="ready-title">Выберите готовое ТЗ</h2><p class="muted">Пример автоматически появится в поле документа.</p><div class="ready-list"><p class="muted">Загружаем список…</p></div><div class="btn-row"><button class="btn btn-secondary" data-ready-close>Отмена</button></div></div>';
+    dialog.querySelector('[data-ready-close]').onclick=()=>dialog.close();dialog.showModal();
+    try {
+      const data=await api('/ready-documents');
+      dialog.querySelector('.ready-list').innerHTML=data.documents.map(item=>`<button class="ready-item" data-ready="${E(item.id)}"><strong>${E(item.title)}</strong><span>${E(item.description)}</span></button>`).join('');
+      dialog.querySelectorAll('[data-ready]').forEach(button=>button.onclick=async()=>{
+        if(state.text.trim()&&!confirm('Заменить введённый текст выбранным ТЗ?'))return;
+        button.disabled=true;
+        try {const document=await api('/ready-documents/'+encodeURIComponent(button.dataset.ready));
+          state.text=document.text;state.filename=document.filename;state.uploadId=null;dialog.close();render();
+        } catch(error){button.disabled=false;notice(error.message);}
+      });
+    } catch(error){dialog.close();notice(error.message);}
   }
   async function launch(text,filename,uploadId=null) {
     if(!text.trim()){notice('Добавьте текст документа');return;}
@@ -133,7 +150,7 @@
     state.timer=setTimeout(poll,3000);
   }
   async function openReview(id) {
-    try{state.review=await api('/reviews/'+id);state.page='review';state.edit=false;
+    try{state.review=await api('/reviews/'+id);state.page='review';state.edit=false;state.summaryText=null;
       state.quote='';state.selectedId='';state.query='';state.filter='open';state.severity='all';render();}catch(e){notice(e.message);}
   }
   function issueHtml(i,index) {
@@ -157,12 +174,12 @@
     const r=state.review,s=U.stats(r.issues),visible=U.filter(r.issues,state.filter,state.query,state.severity);
     app.innerHTML=`<div class="review-shell">${topbar(2)}<div class="statusbar"><div class="status-left">
       <span class="chip">${E(r.document)}</span><span class="chip critical">${s.critical} критичных</span><span class="chip">${s.open} открыто</span><span class="chip ok">${s.confirmed} подтверждено</span></div>
-      <div class="status-actions">${state.edit?'<button class="btn btn-primary btn-sm" id="save-recheck">Сохранить и перепроверить</button><button class="btn btn-secondary btn-sm" id="cancel-edit">Отмена</button>':
+      <div class="status-actions">${state.edit?'<button class="btn btn-primary btn-sm" id="save-recheck">Сохранить и перепроверить</button><button class="btn btn-secondary btn-sm" id="cancel-edit">Отмена</button><button class="btn btn-primary btn-sm" id="draft-summary">К итогу</button>':
       `<button class="btn btn-secondary btn-sm" id="edit" ${!r.text?'disabled':''}>✎ Редактировать текст</button>
       <button class="btn btn-secondary btn-sm" id="recheck" ${!r.text||state.job?'disabled':''}>Перепроверить</button><button class="btn btn-primary btn-sm" id="summary">К итогу</button>`}</div></div>
       <div class="banner ${r.status.startsWith('Проверка')?'':'neutral'}">${E(r.status)}${r.warnings.length?' · '+E(r.warnings.join('; ')):''}</div>
       <div class="workspace"><div class="doc-pane"><div class="doc-paper"><div class="doc-title">${E(r.document)}</div>
-      ${state.edit?`<textarea id="doc-editor" class="doc-editor" aria-label="Текст ТЗ" maxlength="${state.meta.max_chars}">${E(state.editText)}</textarea>`:U.documentHtml(r.text,'',r.issues,state.selectedId)}</div></div>
+      ${state.edit?`<div class="edit-layout"><div><div class="edit-label">Редактор</div><textarea id="doc-editor" class="doc-editor" aria-label="Текст ТЗ" maxlength="${state.meta.max_chars}">${E(state.editText)}</textarea></div><div><div class="edit-label">Предпросмотр</div><div id="edit-preview" class="edit-preview">${U.documentHtml(state.editText)}</div></div></div>`:U.documentHtml(r.text,'',r.issues,state.selectedId)}</div></div>
       <aside class="comments-pane"><div class="comments-head"><div class="comments-head-row"><span id="visible-count">Замечания · ${visible.length} из ${s.total}</span><span>${s.fixed}/${s.total} исправлено</span></div>
       <input class="search-input" id="search" aria-label="Поиск замечаний" placeholder="Поиск замечаний" value="${E(state.query)}"></div>
       <div class="comments-filters">${[['open','Открытые'],['closed','Закрытые'],['all','Все статусы']].map(([key,label])=>`<button class="filter-btn ${state.filter===key?'active':''}" aria-pressed="${state.filter===key}" data-filter="${key}">${label}</button>`).join('')}</div>
@@ -176,9 +193,10 @@
       state.query=e.target.value;const matches=U.filter(r.issues,state.filter,state.query,state.severity);document.getElementById('visible-count').textContent=`Замечания · ${matches.length} из ${s.total}`;document.getElementById('comments-list').innerHTML=matches.map(i=>issueHtml(i,r.issues.indexOf(i))).join('')||'<p class="muted">Ничего не найдено</p>';bindIssues();
     };
     const edit=document.getElementById('edit');if(edit)edit.onclick=()=>{state.edit=true;state.editText=r.text;render();};
-    const editor=document.getElementById('doc-editor');if(editor)editor.oninput=e=>{state.editText=e.target.value;};
+    const editor=document.getElementById('doc-editor');if(editor)editor.oninput=e=>{state.editText=e.target.value;document.getElementById('edit-preview').innerHTML=U.documentHtml(state.editText);};
     const cancel=document.getElementById('cancel-edit');if(cancel)cancel.onclick=()=>{state.edit=false;render();};
     const save=document.getElementById('save-recheck');if(save)save.onclick=()=>launch(document.getElementById('doc-editor').value,r.document);
+    const draftSummary=document.getElementById('draft-summary');if(draftSummary)draftSummary.onclick=()=>{state.editText=document.getElementById('doc-editor').value;state.summaryText=state.editText;state.page='summary';render();};
     const recheck=document.getElementById('recheck');if(recheck)recheck.onclick=()=>launch(r.text,r.document);
     const summary=document.getElementById('summary');if(summary)summary.onclick=()=>{state.page='summary';render();};
   }
@@ -252,21 +270,21 @@
     const url=URL.createObjectURL(new Blob([content],{type}));const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
   }
   function summary() {
-    const r=state.review,s=U.stats(r.issues);
+    const r=state.review,s=U.stats(r.issues),reportText=state.summaryText??r.text,isDraft=state.summaryText!==null;
     app.innerHTML=`<div class="shell">${topbar(3)}<section class="card content-card"><div class="eyebrow">Итог проверки</div><h2>${E(r.document)}</h2>
       <div class="banner ${r.status.startsWith('Проверка')?'':'neutral'}">${E(r.status)}</div>
-      <p class="muted">Вердикт получен для исходного текста. Отметка «Исправлено» не заменяет повторный анализ.</p>
+      <p class="muted">${isDraft?'Показан изменённый текст без повторной проверки. Замечания относятся к исходной версии.':'Вердикт получен для исходного текста. Отметка «Исправлено» не заменяет повторный анализ.'}</p>
       <div class="summary-grid">${[['Замечаний',s.total],['Открыто',s.open],['Подтверждено',s.confirmed],['Исправлено',s.fixed]].map(([label,n])=>`<div class="card summary-card"><span>${label}</span><strong>${n}</strong></div>`).join('')}</div>
       ${r.warnings.map(w=>`<p class="banner">${E(w)}</p>`).join('')}
       <div class="btn-row"><button class="btn btn-primary" id="back-review">К замечаниям</button><button class="btn btn-secondary" id="json">Скачать отчёт JSON</button>
-      <button class="btn btn-secondary" id="print">Печать / PDF</button><button class="btn btn-secondary" id="text" ${!r.text?'disabled':''}>Скачать текст ТЗ</button>
+      <button class="btn btn-secondary" id="print">Печать / PDF</button><button class="btn btn-secondary" id="text" ${!reportText?'disabled':''}>Скачать текст ТЗ</button>
       ${r.has_original?`<a class="btn btn-secondary" href="/api/reviews/${E(r.id)}/original" download>Исходный файл</a>`:''}
       <button class="btn btn-ghost" data-nav="start">Новая проверка</button></div></section></div>`;
     bindNav();document.getElementById('back-review').onclick=()=>{state.page='review';render();};
     document.getElementById('json').onclick=()=>download('review.json','application/json',JSON.stringify(r,null,2));
-    document.getElementById('text').onclick=()=>download('specification.txt','text/plain;charset=utf-8',r.text);
+    document.getElementById('text').onclick=()=>download('specification.txt','text/plain;charset=utf-8',reportText);
     document.getElementById('print').onclick=()=>{
-      document.getElementById('print-report').innerHTML=`<h1>${E(r.document)}</h1><p>${E(r.status)}</p><pre>${E(r.text||'Исходный текст не сохранён')}</pre><h2>Замечания</h2>`+
+      document.getElementById('print-report').innerHTML=`<h1>${E(r.document)}</h1><p>${E(isDraft?'Изменённый текст без повторной проверки':r.status)}</p><div class="print-document">${U.documentHtml(reportText||'Исходный текст не сохранён')}</div><h2>Замечания</h2>`+
         r.issues.map(i=>`<article><h3>${E(i.title)}</h3><p>${E(U.severity[i.severity])} · ${E(U.decisions[i.employee_decision])}</p><p>${E(i.problem)}</p><pre>${E(i.evidence)}</pre><p>${E(i.question)}</p><p>${E(i.recommendation)}</p></article>`).join('');window.print();
     };
   }
@@ -282,12 +300,12 @@
     document.querySelectorAll('[data-job]').forEach(b=>b.onclick=()=>{state.job=h.jobs.find(j=>j.id===b.dataset.job);state.page='busy';render();poll();});
   }
   function progress() {
-    const m=state.metrics,categories=Object.entries(m.categories).sort((a,b)=>b[1]-a[1]);
+    const m=state.metrics,chart=U.donut(m.categories),categories=chart.entries;
     app.innerHTML=`<div class="shell">${topbar()}<h2>Мой прогресс</h2><p class="muted">В статистику входят только принятые и исправленные замечания, а не неподтверждённые гипотезы ИИ.</p>
       <div class="summary-grid">${[['Проверено ТЗ',m.reviews],['Открыто',m.open],['Подтверждено',m.confirmed],['Исправлено',m.fixed]].map(([label,n])=>`<div class="card summary-card"><span>${label}</span><strong>${n}</strong></div>`).join('')}</div>
-      <section class="card content-card"><h3>Повторяющиеся ошибки</h3>${categories.length?categories.map(([name,count])=>`<div class="category-row"><span>${E(name)}</span><strong>${count}</strong></div>`).join(''):'<p class="muted">Подтверждённых ошибок пока нет.</p>'}
+      <section class="card content-card"><h3>Повторяющиеся ошибки</h3>${categories.length?`<div class="donut-layout"><div class="donut" role="img" aria-label="Распределение ${chart.total} подтверждённых ошибок" style="--segments:${categories.map(item=>`${item.color} ${item.start.toFixed(2)}% ${item.end.toFixed(2)}%`).join(',')}"><span><strong>${chart.total}</strong><small>ошибок</small></span></div><div class="donut-legend">${categories.map(item=>`<div class="donut-row"><i style="background:${item.color}"></i><span>${E(item.label)}</span><strong>${item.count}</strong><em>${Math.round(item.percent)}%</em></div>`).join('')}</div></div>`:'<p class="muted">Подтверждённых ошибок пока нет.</p>'}
       ${m.confirmed?`<p class="muted">Исправлено ${Math.round(m.fixed/m.confirmed*100)}% подтверждённых замечаний.</p>`:''}</section>
-      <section class="card content-card"><h3>Чек-лист перед передачей ТЗ</h3><div class="checklist">${[...state.meta.checklist,...categories.slice(0,5).map(([name])=>'Перепроверить: '+name)].map((label,index)=>`<label><input type="checkbox" data-check="${index}" ${state.checklist.has(index)?'checked':''}><span>${E(label)}</span></label>`).join('')}</div>
+      <section class="card content-card"><h3>Чек-лист перед передачей ТЗ</h3><div class="checklist">${[...state.meta.checklist,...categories.slice(0,5).map(item=>'Перепроверить: '+item.label)].map((label,index)=>`<label><input type="checkbox" data-check="${index}" ${state.checklist.has(index)?'checked':''}><span>${E(label)}</span></label>`).join('')}</div>
       <p class="muted">Чек-лист кейсодателя. Отметки действуют в этой вкладке и не меняют результаты ревью.</p></section></div>`;
     bindNav();document.querySelectorAll('[data-check]').forEach(c=>c.onchange=()=>{const n=Number(c.dataset.check);c.checked?state.checklist.add(n):state.checklist.delete(n);});
   }

@@ -36,6 +36,23 @@ from specguard.ui import CASEHOLDER_CHECKLIST, export_review
 logger = logging.getLogger(__name__)
 MAX_UPLOAD = 20 * 1024 * 1024
 COOKIE = "specguard_session"
+READY_DOCUMENTS = {
+    "orders": {
+        "title": "Поток заказов интернет-магазина",
+        "description": "Инкремент, полная перезагрузка и контракт полей",
+        "filename": "01_stream_orders.md",
+    },
+    "network": {
+        "title": "Витрина качества радиосети",
+        "description": "Источники, SLA, агрегации и хранение",
+        "filename": "02_network_quality_mart.md",
+    },
+    "payments": {
+        "title": "Контракт потока платежей",
+        "description": "Kafka, идемпотентность и персональные данные",
+        "filename": "03_payments_contract.md",
+    },
+}
 
 
 class WebBase(DeclarativeBase):
@@ -213,6 +230,28 @@ def create_app(repository=None, orchestrator=None, storage=None, *, secure_cooki
             "max_chars": min(settings.max_document_chars, 120000),
             "max_upload": MAX_UPLOAD,
         }
+
+    @app.get("/api/ready-documents")
+    def ready_documents(auth=Depends(session)):
+        return {
+            "documents": [
+                {"id": key, "title": item["title"], "description": item["description"]}
+                for key, item in READY_DOCUMENTS.items()
+            ]
+        }
+
+    @app.get("/api/ready-documents/{document_id}")
+    def ready_document(document_id: str, auth=Depends(session)):
+        item = READY_DOCUMENTS.get(document_id)
+        if not item:
+            raise HTTPException(404, "Готовое ТЗ не найдено")
+        path = Path(__file__).resolve().parents[2] / "examples" / "ready" / item["filename"]
+        try:
+            text = path.read_text(encoding="utf-8")
+        except OSError as exc:
+            logger.error("Ready document unavailable id=%s", document_id)
+            raise HTTPException(503, "Готовое ТЗ временно недоступно") from exc
+        return {"id": document_id, "filename": item["filename"], "text": text}
 
     @app.post("/api/login")
     async def login(request: Request, response: Response):

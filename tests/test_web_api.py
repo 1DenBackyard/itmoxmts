@@ -112,6 +112,19 @@ def test_authentication_csrf_and_logout(repo, tmp_path):
         assert client.get("/api/me").status_code == 401
 
 
+def test_ready_documents_are_authenticated_and_loadable(repo, tmp_path):
+    with client_for(repo, tmp_path) as client:
+        assert client.get("/api/ready-documents").status_code == 401
+        login(client)
+        documents = client.get("/api/ready-documents").json()["documents"]
+        assert len(documents) == 3
+        assert len({item["id"] for item in documents}) == 3
+        selected = client.get(f"/api/ready-documents/{documents[0]['id']}")
+        assert selected.status_code == 200
+        assert "| Поле | Тип |" in selected.json()["text"]
+        assert client.get("/api/ready-documents/unknown").status_code == 404
+
+
 def test_full_flow_and_cross_user_isolation(repo, tmp_path):
     with client_for(repo, tmp_path) as client:
         login(client)
