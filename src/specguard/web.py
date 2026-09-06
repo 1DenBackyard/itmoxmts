@@ -131,6 +131,12 @@ def create_app(repository=None, orchestrator=None, storage=None, *, secure_cooki
     repo = repository or get_repository()
     reviewer = orchestrator or ReviewOrchestrator(settings)
     documents = storage or create_document_storage(settings)
+    ready_documents_root = Path(
+        os.getenv(
+            "READY_DOCUMENTS_ROOT",
+            Path(__file__).resolve().parents[2] / "examples" / "ready",
+        )
+    )
     secure = (
         secure_cookie
         if secure_cookie is not None
@@ -245,7 +251,7 @@ def create_app(repository=None, orchestrator=None, storage=None, *, secure_cooki
         item = READY_DOCUMENTS.get(document_id)
         if not item:
             raise HTTPException(404, "Готовое ТЗ не найдено")
-        path = Path(__file__).resolve().parents[2] / "examples" / "ready" / item["filename"]
+        path = ready_documents_root / item["filename"]
         try:
             text = path.read_text(encoding="utf-8")
         except OSError as exc:

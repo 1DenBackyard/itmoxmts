@@ -128,7 +128,9 @@ def test_ready_documents_are_authenticated_and_loadable(repo, tmp_path):
 
 def test_ready_documents_exist_in_docker_image_definition():
     dockerfile = Path(__file__).resolve().parents[1] / "Dockerfile"
-    assert "COPY examples ./examples" in dockerfile.read_text()
+    definition = dockerfile.read_text()
+    assert "COPY examples ./examples" in definition
+    assert "READY_DOCUMENTS_ROOT=/app/examples/ready" in definition
 
 
 def test_full_flow_and_cross_user_isolation(repo, tmp_path):
