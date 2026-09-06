@@ -120,10 +120,22 @@ def test_ready_documents_are_authenticated_and_loadable(repo, tmp_path):
         documents = client.get("/api/ready-documents").json()["documents"]
         assert len(documents) == 3
         assert len({item["id"] for item in documents}) == 3
-        selected = client.get(f"/api/ready-documents/{documents[0]['id']}")
+        selected = client.post(f"/api/ready-documents/{documents[0]['id']}")
         assert selected.status_code == 200
-        assert "| Поле | Тип |" in selected.json()["text"]
-        assert client.get("/api/ready-documents/unknown").status_code == 404
+        assert "FIELD_REGION" in selected.json()["text"]
+        upload = selected.json()
+        job = client.post(
+            "/api/reviews",
+            json={
+                "text": upload["text"],
+                "filename": upload["filename"],
+                "upload_id": upload["id"],
+            },
+        )
+        assert job.status_code == 202
+        review_id = wait_job(client, job.json()["id"])["review_id"]
+        assert client.get(f"/api/reviews/{review_id}/original").content.startswith(b"%PDF-")
+        assert client.post("/api/ready-documents/unknown").status_code == 404
 
 
 def test_ready_documents_exist_in_docker_image_definition():

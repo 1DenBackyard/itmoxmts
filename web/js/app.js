@@ -113,8 +113,8 @@
       dialog.querySelectorAll('[data-ready]').forEach(button=>button.onclick=async()=>{
         if(state.text.trim()&&!confirm('Заменить введённый текст выбранным ТЗ?'))return;
         button.disabled=true;
-        try {const document=await api('/ready-documents/'+encodeURIComponent(button.dataset.ready));
-          state.text=document.text;state.filename=document.filename;state.uploadId=null;dialog.close();render();
+        try {const document=await api('/ready-documents/'+encodeURIComponent(button.dataset.ready),{method:'POST'});
+          state.text=document.text;state.filename=document.filename;state.uploadId=document.id;dialog.close();render();
         } catch(error){button.disabled=false;notice(error.message);}
       });
     } catch(error){dialog.close();notice(error.message);}

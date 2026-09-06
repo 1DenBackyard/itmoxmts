@@ -37,20 +37,20 @@ logger = logging.getLogger(__name__)
 MAX_UPLOAD = 20 * 1024 * 1024
 COOKIE = "specguard_session"
 READY_DOCUMENTS = {
-    "orders": {
-        "title": "Поток заказов интернет-магазина",
-        "description": "Инкремент, полная перезагрузка и контракт полей",
-        "filename": "01_stream_orders.md",
+    "tz-01": {
+        "title": "TZ_01 · Геолокация абонентов",
+        "description": "Поток событий 3G/4G, топики Kafka и структура полей",
+        "filename": "TZ_01.pdf",
     },
-    "network": {
-        "title": "Витрина качества радиосети",
-        "description": "Источники, SLA, агрегации и хранение",
-        "filename": "02_network_quality_mart.md",
+    "tz-02": {
+        "title": "TZ_02 · Поток CDR",
+        "description": "Обработка звонков, временные зоны и структура RAW-слоя",
+        "filename": "TZ_02.pdf",
     },
-    "payments": {
-        "title": "Контракт потока платежей",
-        "description": "Kafka, идемпотентность и персональные данные",
-        "filename": "03_payments_contract.md",
+    "tz-03": {
+        "title": "TZ_03 · Витрина устройств",
+        "description": "Ежемесячный агрегат по устройствам и абонентам",
+        "filename": "TZ_03.pdf",
     },
 }
 
@@ -246,18 +246,41 @@ def create_app(repository=None, orchestrator=None, storage=None, *, secure_cooki
             ]
         }
 
-    @app.get("/api/ready-documents/{document_id}")
-    def ready_document(document_id: str, auth=Depends(session)):
+    @app.post("/api/ready-documents/{document_id}")
+    async def ready_document(document_id: str, auth=Depends(session)):
         item = READY_DOCUMENTS.get(document_id)
         if not item:
             raise HTTPException(404, "Готовое ТЗ не найдено")
         path = ready_documents_root / item["filename"]
         try:
-            text = path.read_text(encoding="utf-8")
-        except OSError as exc:
+            content = await run_in_threadpool(path.read_bytes)
+            text = await run_in_threadpool(
+                extract_text,
+                item["filename"],
+                content,
+                max_chars=min(settings.max_document_chars, 120000),
+            )
+            stored = await run_in_threadpool(
+                documents.put_document,
+                user_id=auth.user_id,
+                filename=item["filename"],
+                content=content,
+                content_type="application/pdf",
+            )
+        except (OSError, DocumentExtractionError, DocumentStorageError) as exc:
             logger.error("Ready document unavailable id=%s", document_id)
             raise HTTPException(503, "Готовое ТЗ временно недоступно") from exc
-        return {"id": document_id, "filename": item["filename"], "text": text}
+        upload = WebUpload(
+            id=str(uuid.uuid4()),
+            user_id=auth.user_id,
+            filename=item["filename"],
+            text=text,
+            stored=json.dumps(asdict(stored)),
+        )
+        with repo.session_factory() as db:
+            db.add(upload)
+            db.commit()
+        return {"id": upload.id, "filename": item["filename"], "text": text}
 
     @app.post("/api/login")
     async def login(request: Request, response: Response):
