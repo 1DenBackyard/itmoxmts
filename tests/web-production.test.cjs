@@ -86,6 +86,13 @@ test('only accepted and fixed issues count as confirmed',()=>{
   assert.equal(U.filter(issues,'open').length,1);
   assert.equal(U.filter(issues,'closed').length,3);
 });
+test('print report includes issues only when requested',()=>{
+  const finding={title:'Missing <field>',severity:'major',employee_decision:'open',problem:'Problem',evidence:'Quote',question:'Question',recommendation:'Fix'};
+  const included=U.printIssuesHtml([finding],true);
+  assert.ok(included.includes('<h2>Замечания</h2>'));
+  assert.ok(included.includes('Missing &lt;field&gt;'));
+  assert.equal(U.printIssuesHtml([finding],false),'');
+});
 test('production HTML never loads demo evaluation or demo datasets',()=>{
   const html=fs.readFileSync(path.join(__dirname,'../web/index.html'),'utf8');
   assert.ok(!html.includes('analyzer.js'));
@@ -98,5 +105,7 @@ test('production HTML never loads demo evaluation or demo datasets',()=>{
   assert.ok(app.includes('contenteditable="true"'));
   assert.ok(!app.includes('edit-preview'));
   assert.ok(app.includes('U.documentHtml(reportText'));
+  assert.ok(app.includes('id="print-with-issues"'));
+  assert.ok(app.includes("U.printIssuesHtml(r.issues,state.exportWithIssues)"));
   assert.ok(app.includes("value=\"${state.meta?.demo?'analyst@example.com':''}\""));
 });

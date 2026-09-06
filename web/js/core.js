@@ -114,6 +114,10 @@
       return block.innerText;
     }).join('\n').replace(/\u00a0/g,' ').replace(/\n{4,}/g,'\n\n\n').trim();
   }
+  function printIssuesHtml(issues, includeIssues=true) {
+    if(!includeIssues) return '';
+    return '<h2>Замечания</h2>'+issues.map(i=>`<article><h3>${escape(i.title)}</h3><p>${escape(severity[i.severity]||i.severity)} · ${escape(decisions[i.employee_decision]||i.employee_decision)}</p><p>${escape(i.problem)}</p><pre>${escape(i.evidence)}</pre><p>${escape(i.question)}</p><p>${escape(i.recommendation)}</p></article>`).join('');
+  }
   const template = title => `${title}\n\nОбщие сведения\n\nРешаемая проблема\n\nПродуктовые метрики\n\nЗаказчики\n\nНефункциональные требования\n\nСистемы-источники\n\nData Catalog\n\nИсходники проекта\n\nКоманда\n\nJIRA\n\nИсточники данных\nОписание | Тип источника | Ссылка | Сериализация\n\nИсточники обогащения данных\n\nПриемники данных\nОписание | Кластер | Ссылка на Каталог | Сериализация\n\nСхема потоков данных\n\nАлгоритм обработки потока\n\nШаг 1. Фильтрация данных\n\nШаг 2. Обогащение данных\n\nШаг 3. Преобразования\n\nФормирование ключа Kafka / партиции HDFS\n\nСтруктура данных\nАтрибут | Тип | NULL / NOT NULL | Описание | Источник | Исходный атрибут | Формула\n\nПример данных\n\nDDL\n\nFAQ\n\nИстория изменений\n`;
   function applyProposal(text, snapshot, proposal, replacement, limit=120000) {
     if(text!==snapshot) throw new Error('Текст изменился. Запросите правку заново.');
@@ -128,5 +132,5 @@
     if(updated.length>limit) throw new Error('После правки текст превышает лимит.');
     return updated;
   }
-  globalThis.SpecUI = {escape,severity,decisions,filter,stats,anchors,documentHtml,editableText,template,applyProposal,categoryLabel,donut};
+  globalThis.SpecUI = {escape,severity,decisions,filter,stats,anchors,documentHtml,editableText,printIssuesHtml,template,applyProposal,categoryLabel,donut};
 })();

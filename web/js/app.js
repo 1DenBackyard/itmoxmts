@@ -3,7 +3,7 @@
   const U=window.SpecUI, E=U.escape, app=document.getElementById('app');
   const state={user:null,meta:null,page:'login',review:null,history:null,metrics:null,
     text:'',filename:'Техническое задание.txt',uploadId:null,docType:'flow',
-    filter:'open',severity:'all',query:'',edit:false,editText:'',summaryText:null,quote:'',selectedId:'',job:null,timer:null,checklist:new Set(),busy:false};
+    filter:'open',severity:'all',query:'',edit:false,editText:'',summaryText:null,exportWithIssues:true,quote:'',selectedId:'',job:null,timer:null,checklist:new Set(),busy:false};
   const types={flow:['Поток данных','Источники, Kafka, обработка и структура потока.'],
     source:['Система-источник','Описание источников и контрактов данных.'],
     mart:['Витрина-агрегат','Маппинг полей, формулы и регламент обновления.']};
@@ -27,7 +27,7 @@
   function reset() {
     clearTimeout(state.timer);
     Object.assign(state,{user:null,page:'login',review:null,history:null,metrics:null,
-      text:'',editText:'',summaryText:null,uploadId:null,job:null,edit:false,busy:false,quote:'',selectedId:'',checklist:new Set()});
+      text:'',editText:'',summaryText:null,exportWithIssues:true,uploadId:null,job:null,edit:false,busy:false,quote:'',selectedId:'',checklist:new Set()});
   }
   function topbar(step=0) {
     return `<div class="topbar"><div class="brand">
@@ -150,7 +150,7 @@
     state.timer=setTimeout(poll,3000);
   }
   async function openReview(id) {
-    try{state.review=await api('/reviews/'+id);state.page='review';state.edit=false;state.summaryText=null;
+    try{state.review=await api('/reviews/'+id);state.page='review';state.edit=false;state.summaryText=null;state.exportWithIssues=true;
       state.quote='';state.selectedId='';state.query='';state.filter='open';state.severity='all';render();}catch(e){notice(e.message);}
   }
   function issueHtml(i,index) {
@@ -277,15 +277,17 @@
       <div class="summary-grid">${[['Замечаний',s.total],['Открыто',s.open],['Подтверждено',s.confirmed],['Исправлено',s.fixed]].map(([label,n])=>`<div class="card summary-card"><span>${label}</span><strong>${n}</strong></div>`).join('')}</div>
       ${r.warnings.map(w=>`<p class="banner">${E(w)}</p>`).join('')}
       <div class="btn-row"><button class="btn btn-primary" id="back-review">К замечаниям</button><button class="btn btn-secondary" id="json">Скачать отчёт JSON</button>
+      <label class="export-option"><input type="checkbox" id="print-with-issues" ${state.exportWithIssues?'checked':''}><span>Выгрузить с замечаниями</span></label>
       <button class="btn btn-secondary" id="print">Печать / PDF</button><button class="btn btn-secondary" id="text" ${!reportText?'disabled':''}>Скачать текст ТЗ</button>
       ${r.has_original?`<a class="btn btn-secondary" href="/api/reviews/${E(r.id)}/original" download>Исходный файл</a>`:''}
       <button class="btn btn-ghost" data-nav="start">Новая проверка</button></div></section></div>`;
     bindNav();document.getElementById('back-review').onclick=()=>{state.page='review';render();};
     document.getElementById('json').onclick=()=>download('review.json','application/json',JSON.stringify(r,null,2));
     document.getElementById('text').onclick=()=>download('specification.txt','text/plain;charset=utf-8',reportText);
+    document.getElementById('print-with-issues').onchange=e=>{state.exportWithIssues=e.target.checked;};
     document.getElementById('print').onclick=()=>{
-      document.getElementById('print-report').innerHTML=`<h1>${E(r.document)}</h1><p>${E(isDraft?'Изменённый текст без повторной проверки':r.status)}</p><div class="print-document">${U.documentHtml(reportText||'Исходный текст не сохранён')}</div><h2>Замечания</h2>`+
-        r.issues.map(i=>`<article><h3>${E(i.title)}</h3><p>${E(U.severity[i.severity])} · ${E(U.decisions[i.employee_decision])}</p><p>${E(i.problem)}</p><pre>${E(i.evidence)}</pre><p>${E(i.question)}</p><p>${E(i.recommendation)}</p></article>`).join('');window.print();
+      document.getElementById('print-report').innerHTML=`<h1>${E(r.document)}</h1><p>${E(isDraft?'Изменённый текст без повторной проверки':r.status)}</p><div class="print-document">${U.documentHtml(reportText||'Исходный текст не сохранён')}</div>`+
+        U.printIssuesHtml(r.issues,state.exportWithIssues);window.print();
     };
   }
   function history() {
