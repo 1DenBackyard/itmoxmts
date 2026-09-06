@@ -261,7 +261,7 @@ class CloudRuIssueJudge:
 
         result = self._gateway.structured(
             system=prompts.JUDGE_SYSTEM_PROMPT,
-            user=f"Замечания на сведение:\n\n{_issues_payload(issues, with_evidence=False)}",
+            user=f"Замечания на сведение:\n\n{_issues_payload(issues, with_evidence=True)}",
             schema_name="judge_response",
             schema=JudgeResponse,
             validate=validate,

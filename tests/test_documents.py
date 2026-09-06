@@ -69,3 +69,46 @@ def test_reject_empty_document() -> None:
 def test_reject_unsupported_type() -> None:
     with pytest.raises(DocumentExtractionError, match="не поддерживается"):
         extract_text("spec.xlsx", b"data", max_chars=100)
+
+
+def test_wrapped_identifier_in_cell_is_glued():
+    from docx import Document
+
+    document = Document()
+    table = document.add_table(rows=2, cols=2)
+    for row, values in zip(
+        table.rows, [("Поле", "Тип данных"), ("FIELD_REGION_NA\nME", "timesta\nmp")]
+    ):
+        for cell, value in zip(row.cells, values):
+            cell.text = value
+    stream = BytesIO()
+    document.save(stream)
+    text = extract_text("wrapped.docx", stream.getvalue(), max_chars=1000)
+    assert "| FIELD_REGION_NAME | timestamp |" in text
+
+
+def test_prose_cell_keeps_its_spaces():
+    from docx import Document
+
+    document = Document()
+    table = document.add_table(rows=1, cols=2)
+    row = table.rows[0]
+    row.cells[0].text = "Наименование вендора"
+    row.cells[1].text = "substring(imei, 1, 8) = tac"
+    stream = BytesIO()
+    document.save(stream)
+    text = extract_text("prose.docx", stream.getvalue(), max_chars=1000)
+    assert "| Наименование вендора | substring(imei, 1, 8) = tac |" in text
+
+
+def test_single_column_table_is_not_marked_up_as_table():
+    from docx import Document
+
+    document = Document()
+    table = document.add_table(rows=1, cols=1)
+    table.rows[0].cells[0].text = "Схема потоков данных"
+    stream = BytesIO()
+    document.save(stream)
+    text = extract_text("boxed.docx", stream.getvalue(), max_chars=1000)
+    assert "Схема потоков данных" in text
+    assert "|" not in text

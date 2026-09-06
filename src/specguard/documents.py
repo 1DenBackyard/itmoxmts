@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from io import BytesIO
 from pathlib import Path
 
@@ -7,12 +8,24 @@ import pdfplumber
 from docx import Document
 from docx.table import Table
 
+# Имя поля или тип данных не содержит пробелов. Если после склейки ячейка выглядит
+# именно так, пробелы в ней пришли от переноса строки внутри ячейки PDF
+# ("FIELD_REGION_NA ME", "timesta mp") и их нужно убрать.
+_IDENTIFIER = re.compile(r"^(?:[A-Za-z_][A-Za-z0-9_]*|[a-z]+\(\d+(?:,\d+)?\))$")
+
+
+def _cell_text(cell: str | None) -> str:
+    text = " ".join((cell or "").split()).replace("|", "¦")
+    joined = text.replace(" ", "")
+    return joined if text != joined and _IDENTIFIER.match(joined) else text
+
 
 def _table_text(rows: list[list[str | None]]) -> str:
-    return "\n".join(
-        "| " + " | ".join(" ".join((cell or "").split()).replace("|", "¦") for cell in row) + " |"
-        for row in rows
-    )
+    # Таблица из одной колонки — это врезка или заголовок в рамке, а не данные:
+    # разметка пайпами превратила бы её в фальшивую строку таблицы.
+    if all(len(row) < 2 for row in rows):
+        return "\n".join(filter(None, (_cell_text(row[0] if row else None) for row in rows)))
+    return "\n".join("| " + " | ".join(_cell_text(cell) for cell in row) + " |" for row in rows)
 
 
 def _pdf_text(content: bytes) -> str:
