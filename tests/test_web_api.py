@@ -2,6 +2,7 @@ import threading
 import time
 from contextlib import contextmanager
 from dataclasses import replace
+from pathlib import Path
 
 import pytest
 from conftest import make_issue
@@ -123,6 +124,11 @@ def test_ready_documents_are_authenticated_and_loadable(repo, tmp_path):
         assert selected.status_code == 200
         assert "| Поле | Тип |" in selected.json()["text"]
         assert client.get("/api/ready-documents/unknown").status_code == 404
+
+
+def test_ready_documents_exist_in_docker_image_definition():
+    dockerfile = Path(__file__).resolve().parents[1] / "Dockerfile"
+    assert "COPY examples ./examples" in dockerfile.read_text()
 
 
 def test_full_flow_and_cross_user_isolation(repo, tmp_path):

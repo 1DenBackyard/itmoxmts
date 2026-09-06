@@ -81,13 +81,15 @@
     const headings = /^(общие сведения|решаемая проблема|продуктовые метрики|заказчики|нефункциональные требования|системы-источники|data catalog|исходники проекта|команда|jira|источники данных|источники обогащения данных|при[её]мники данных|схема потоков данных|алгоритм обработки потока|структура данных|пример данных|ddl|faq|история изменений|формирование ключа.*|шаг \d+\..*)$/i;
     const lines=text.split('\n'); let out='', body=[],position=0;
     const offsets=lines.map(line=>{const offset=position;position+=line.length+1;return offset;});
-    const flush=()=>{if(body.length){out+=`<div class="body-text">${body.join('\n')}</div>`;body=[];}};
+    const flush=()=>{if(body.length){out+=`<div class="body-text" data-editor-block="text">${body.join('\n')}</div>`;body=[];}};
+    const tableLine=line=>{const value=line.trim();return /^\|.*\|$/.test(value)||
+      (value.includes('|')&&value.replace(/^\|/,'').replace(/\|$/,'').split('|').length>=2);};
     for(let n=0;n<lines.length;n++) {
       const line=lines[n];
-      if(line.includes('|') && (lines[n+1]||'').includes('|')) {
+      if(tableLine(line)) {
         flush(); const rows=[];
-        while(n<lines.length && lines[n].includes('|')) {rows.push({text:lines[n],offset:offsets[n]});n++;} n--;
-        out+='<div class="table-wrap"><table class="doc-table"><tbody>';
+        while(n<lines.length && tableLine(lines[n])) {rows.push({text:lines[n],offset:offsets[n]});n++;} n--;
+        out+='<div class="table-wrap" data-editor-block="table"><table class="doc-table"><tbody>';
         rows.filter(row=>!/^\s*\|?[\s:|\-]+\|?\s*$/.test(row.text)).forEach((row,index)=>{
           const trimmed=row.text.trim(), leading=row.text.indexOf(trimmed);
           let cursor=row.offset+leading+(trimmed.startsWith('|')?1:0);
@@ -98,10 +100,19 @@
           }).join('')+'</tr>';
         }); out+='</tbody></table></div>';
       } else if(headings.test(line.trim()) || /^#{1,4}\s/.test(line)) {
-        const label=line.replace(/^#{1,4}\s/,'');
-        flush(); out+=`<section class="doc-section"><h3>${rich(label,offsets[n]+line.length-label.length)}</h3></section>`;
+        const prefix=(line.match(/^#{1,4}\s/)||[''])[0],label=line.slice(prefix.length);
+        flush(); out+=`<section class="doc-section" data-editor-block="heading" data-prefix="${escape(prefix)}"><h3>${rich(label,offsets[n]+line.length-label.length)}</h3></section>`;
       } else {body.push(rich(line,offsets[n]));}
     } flush(); return out;
+  }
+  function editableText(root) {
+    if(!root) return '';
+    return [...root.children].map(block=>{
+      if(block.dataset.editorBlock==='heading') return (block.dataset.prefix||'')+(block.querySelector('h3')?.innerText||'');
+      if(block.dataset.editorBlock==='table') return [...block.querySelectorAll('tr')].map(row=>
+        '| '+[...row.querySelectorAll('th,td')].map(cell=>cell.innerText.replaceAll('|','¦').trim()).join(' | ')+' |').join('\n');
+      return block.innerText;
+    }).join('\n').replace(/\u00a0/g,' ').replace(/\n{4,}/g,'\n\n\n').trim();
   }
   const template = title => `${title}\n\nОбщие сведения\n\nРешаемая проблема\n\nПродуктовые метрики\n\nЗаказчики\n\nНефункциональные требования\n\nСистемы-источники\n\nData Catalog\n\nИсходники проекта\n\nКоманда\n\nJIRA\n\nИсточники данных\nОписание | Тип источника | Ссылка | Сериализация\n\nИсточники обогащения данных\n\nПриемники данных\nОписание | Кластер | Ссылка на Каталог | Сериализация\n\nСхема потоков данных\n\nАлгоритм обработки потока\n\nШаг 1. Фильтрация данных\n\nШаг 2. Обогащение данных\n\nШаг 3. Преобразования\n\nФормирование ключа Kafka / партиции HDFS\n\nСтруктура данных\nАтрибут | Тип | NULL / NOT NULL | Описание | Источник | Исходный атрибут | Формула\n\nПример данных\n\nDDL\n\nFAQ\n\nИстория изменений\n`;
   function applyProposal(text, snapshot, proposal, replacement, limit=120000) {
@@ -117,5 +128,5 @@
     if(updated.length>limit) throw new Error('После правки текст превышает лимит.');
     return updated;
   }
-  globalThis.SpecUI = {escape,severity,decisions,filter,stats,anchors,documentHtml,template,applyProposal,categoryLabel,donut};
+  globalThis.SpecUI = {escape,severity,decisions,filter,stats,anchors,documentHtml,editableText,template,applyProposal,categoryLabel,donut};
 })();

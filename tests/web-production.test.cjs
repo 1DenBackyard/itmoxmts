@@ -69,6 +69,16 @@ test('tables and source lines remain readable without generating findings',()=>{
   assert.ok(html.includes('Конец'));
   assert.ok(html.includes('Описание'));
 });
+test('one-row tables render and rich editor serializes visible tables',()=>{
+  assert.ok(U.documentHtml('A | B').includes('<table'));
+  assert.ok(U.documentHtml('| Single column |').includes('<table'));
+  const cell=value=>({innerText:value});
+  const row={querySelectorAll:()=>[cell('Field'),cell('Type')]};
+  const table={dataset:{editorBlock:'table'},querySelectorAll:()=>[row]};
+  const heading={dataset:{editorBlock:'heading',prefix:'## '},querySelector:()=>({innerText:'Schema'})};
+  const text={dataset:{editorBlock:'text'},innerText:'Description'};
+  assert.equal(U.editableText({children:[heading,text,table]}),'## Schema\nDescription\n| Field | Type |');
+});
 test('only accepted and fixed issues count as confirmed',()=>{
   const issues=['open','accepted','rejected','fixed'].map((d,n)=>({title:'key',category:'contract',problem:'p',employee_decision:d,severity:n===0?'blocker':'major'}));
   assert.equal(U.stats(issues).confirmed,2);
@@ -85,6 +95,8 @@ test('production HTML never loads demo evaluation or demo datasets',()=>{
   assert.ok(app.includes("api('/reviews'"));
   assert.ok(app.includes('Загрузить готовое ТЗ'));
   assert.ok(app.includes('state.summaryText=state.editText'));
+  assert.ok(app.includes('contenteditable="true"'));
+  assert.ok(!app.includes('edit-preview'));
   assert.ok(app.includes('U.documentHtml(reportText'));
   assert.ok(app.includes("value=\"${state.meta?.demo?'analyst@example.com':''}\""));
 });

@@ -179,7 +179,7 @@
       <button class="btn btn-secondary btn-sm" id="recheck" ${!r.text||state.job?'disabled':''}>Перепроверить</button><button class="btn btn-primary btn-sm" id="summary">К итогу</button>`}</div></div>
       <div class="banner ${r.status.startsWith('Проверка')?'':'neutral'}">${E(r.status)}${r.warnings.length?' · '+E(r.warnings.join('; ')):''}</div>
       <div class="workspace"><div class="doc-pane"><div class="doc-paper"><div class="doc-title">${E(r.document)}</div>
-      ${state.edit?`<div class="edit-layout"><div><div class="edit-label">Редактор</div><textarea id="doc-editor" class="doc-editor" aria-label="Текст ТЗ" maxlength="${state.meta.max_chars}">${E(state.editText)}</textarea></div><div><div class="edit-label">Предпросмотр</div><div id="edit-preview" class="edit-preview">${U.documentHtml(state.editText)}</div></div></div>`:U.documentHtml(r.text,'',r.issues,state.selectedId)}</div></div>
+      ${state.edit?`<div class="edit-hint">Редактируйте текст и ячейки таблиц прямо в документе.</div><div id="doc-editor" class="rich-editor" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Текст ТЗ">${U.documentHtml(state.editText)}</div>`:U.documentHtml(r.text,'',r.issues,state.selectedId)}</div></div>
       <aside class="comments-pane"><div class="comments-head"><div class="comments-head-row"><span id="visible-count">Замечания · ${visible.length} из ${s.total}</span><span>${s.fixed}/${s.total} исправлено</span></div>
       <input class="search-input" id="search" aria-label="Поиск замечаний" placeholder="Поиск замечаний" value="${E(state.query)}"></div>
       <div class="comments-filters">${[['open','Открытые'],['closed','Закрытые'],['all','Все статусы']].map(([key,label])=>`<button class="filter-btn ${state.filter===key?'active':''}" aria-pressed="${state.filter===key}" data-filter="${key}">${label}</button>`).join('')}</div>
@@ -193,10 +193,10 @@
       state.query=e.target.value;const matches=U.filter(r.issues,state.filter,state.query,state.severity);document.getElementById('visible-count').textContent=`Замечания · ${matches.length} из ${s.total}`;document.getElementById('comments-list').innerHTML=matches.map(i=>issueHtml(i,r.issues.indexOf(i))).join('')||'<p class="muted">Ничего не найдено</p>';bindIssues();
     };
     const edit=document.getElementById('edit');if(edit)edit.onclick=()=>{state.edit=true;state.editText=r.text;render();};
-    const editor=document.getElementById('doc-editor');if(editor)editor.oninput=e=>{state.editText=e.target.value;document.getElementById('edit-preview').innerHTML=U.documentHtml(state.editText);};
+    const editor=document.getElementById('doc-editor');if(editor)editor.oninput=()=>{state.editText=U.editableText(editor);};
     const cancel=document.getElementById('cancel-edit');if(cancel)cancel.onclick=()=>{state.edit=false;render();};
-    const save=document.getElementById('save-recheck');if(save)save.onclick=()=>launch(document.getElementById('doc-editor').value,r.document);
-    const draftSummary=document.getElementById('draft-summary');if(draftSummary)draftSummary.onclick=()=>{state.editText=document.getElementById('doc-editor').value;state.summaryText=state.editText;state.page='summary';render();};
+    const save=document.getElementById('save-recheck');if(save)save.onclick=()=>launch(U.editableText(editor),r.document);
+    const draftSummary=document.getElementById('draft-summary');if(draftSummary)draftSummary.onclick=()=>{state.editText=U.editableText(editor);state.summaryText=state.editText;state.page='summary';render();};
     const recheck=document.getElementById('recheck');if(recheck)recheck.onclick=()=>launch(r.text,r.document);
     const summary=document.getElementById('summary');if(summary)summary.onclick=()=>{state.page='summary';render();};
   }

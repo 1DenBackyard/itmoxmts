@@ -19,6 +19,7 @@ RUN pip install .
 COPY app.py ./
 COPY .streamlit ./.streamlit
 COPY web ./web
+COPY examples ./examples
 
 RUN mkdir -p /app/data/documents && chown -R app:app /app
 USER app
