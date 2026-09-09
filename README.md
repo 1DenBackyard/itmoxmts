@@ -1,5 +1,10 @@
 # NET SpecGuard
 
+> **Статус проекта:** хакатон завершён победой команды. Production VM выведена
+> из эксплуатации 9 сентября 2026 года. Исходный код и CI сохранены; автоматический
+> deploy отключён и включается только явной переменной `DEPLOY_ENABLED=true` после
+> настройки новой инфраструктуры.
+
 Production-интерфейс на HTML/CSS/JavaScript + FastAPI: [перенос и запуск](docs/html-production.md). Прежний Streamlit сохранён для отката.
 
 Маршрутизация LLM: при настроенном `DEEPSEEK_API_KEY` основная модель —
@@ -345,7 +350,8 @@ postgresql+psycopg://USER:PASSWORD@HOST:5432/DATABASE?sslmode=require
 Workflow `.github/workflows/ci.yml` работает так:
 
 - Pull Request: установка зависимостей, Ruff, Pytest, compileall и сборка Docker-образа;
-- push/merge в `main`: те же проверки, затем синхронизация точного commit на VM, установка production `.env`, `docker compose up -d --build` и health check;
+- push/merge в `main`: те же проверки; production-деплой выполняется только при
+  установленной Actions variable `DEPLOY_ENABLED=true`;
 - ручной повтор: **GitHub → Actions → CI/CD → Run workflow** на ветке `main`.
 
 Деплой использует GitHub Environment `production` и два Actions Secret:
@@ -361,9 +367,13 @@ Workflow `.github/workflows/ci.yml` работает так:
 2. Добавить secrets `VM_SSH_PRIVATE_KEY_B64` и `PROD_ENV_FILE`.
 3. Опционально открыть **Settings → Environments**, создать `production` и включить доступные для тарифа protection rules. Для приватного репозитория на GitHub Free environment secrets и required reviewers могут быть недоступны, поэтому базовая схема использует repository secrets.
 4. Создать Pull Request из рабочей ветки в `main` и дождаться зелёного CI.
-5. Merge Pull Request автоматически запустит production deploy.
+5. После настройки новой VM добавить Actions variable `DEPLOY_ENABLED=true`.
+   Только после этого merge в `main` автоматически запустит production deploy.
 
-IP, пользователь и каталог VM сейчас зафиксированы в workflow: `176.123.165.124`, `denbackyard`, `/home/denbackyard/net-specguard`. Приложение остаётся привязано к `127.0.0.1:8501`; внешний доступ должен идти через reverse proxy с HTTPS.
+IP, пользователь и каталог прежней VM оставлены в workflow как историческая
+конфигурация. Перед повторным включением deploy их необходимо заменить. Приложение
+остаётся привязано к `127.0.0.1:8501`; внешний доступ должен идти через reverse
+proxy с HTTPS.
 
 Секреты нельзя добавлять в Git, workflow-файлы или логи. Чтобы изменить FM-токен, пароль или S3-ключи, обновите только `PROD_ENV_FILE` в GitHub Environment и повторно запустите workflow.
 

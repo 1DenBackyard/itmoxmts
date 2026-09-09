@@ -55,7 +55,11 @@ jobs:
     name: Deploy production
     runs-on: ubuntu-latest
     needs: [test, docker]
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    # The hackathon VM was decommissioned. Deployment stays opt-in for a future restart.
+    if: >-
+      github.event_name != 'pull_request' &&
+      github.ref == 'refs/heads/main' &&
+      vars.DEPLOY_ENABLED == 'true'
     environment: production
     env:
       VM_HOST: 176.123.165.124
